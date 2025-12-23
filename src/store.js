@@ -2,13 +2,13 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const storeFile = fileURLToPath(import.meta.url);
+const storeDir = path.dirname(storeFile);
 
 // Determine a writable data directory. On Netlify Functions, the code
 // directory is read-only, so we fall back to /tmp.
 function resolveDataDir() {
-  const defaultDir = path.join(__dirname, '..', 'data');
+  const defaultDir = path.join(storeDir, '..', 'data');
   try {
     if (!fs.existsSync(defaultDir)) fs.mkdirSync(defaultDir, { recursive: true });
     const testFile = path.join(defaultDir, '.writecheck');
@@ -53,13 +53,13 @@ export function initStore(){
   ensureDir(dataDir);
   load();
   // load questions
-  const qPath = path.join(__dirname, 'questions.json');
+  const qPath = path.join(storeDir, 'questions.json');
   questions = JSON.parse(fs.readFileSync(qPath, 'utf-8')).map(q => ({ id: q.id, text: q.text, options: q.options, correct_index: q.correct_index, image: q.image, chart: q.chart }));
-  const satPath = path.join(__dirname, 'sat_questions.json');
+  const satPath = path.join(storeDir, 'sat_questions.json');
   if(fs.existsSync(satPath)){
     satQuestions = JSON.parse(fs.readFileSync(satPath, 'utf-8')).map(q => ({ id: q.id, text: q.text, options: q.options, correct_index: q.correct_index, section: 'verbal', image: q.image, chart: q.chart, type: q.type, answer: q.answer }));
   }
-  const satMathPath = path.join(__dirname, 'sat_math_questions.json');
+  const satMathPath = path.join(storeDir, 'sat_math_questions.json');
   if(fs.existsSync(satMathPath)){
     satMathQuestions = JSON.parse(fs.readFileSync(satMathPath, 'utf-8')).map(q => ({ id: q.id, text: q.text, options: q.options, correct_index: q.correct_index, section: 'math', image: q.image, chart: q.chart, type: q.type, answer: q.answer }));
   }
@@ -138,7 +138,7 @@ export function upsertSATQuestion(section, data){
   target.sort((a, b) => a.id - b.id);
   // Save to file
   const fileName = section === 'math' ? 'sat_math_questions.json' : 'sat_questions.json';
-  const filePath = path.join(__dirname, fileName);
+  const filePath = path.join(storeDir, fileName);
   fs.writeFileSync(filePath, JSON.stringify(target, null, 2));
   return q;
 }
@@ -149,7 +149,7 @@ export function deleteSATQuestion(section, id){
   if(section === 'math') satMathQuestions = filtered;
   else satQuestions = filtered;
   const fileName = section === 'math' ? 'sat_math_questions.json' : 'sat_questions.json';
-  const filePath = path.join(__dirname, fileName);
+  const filePath = path.join(storeDir, fileName);
   fs.writeFileSync(filePath, JSON.stringify(filtered, null, 2));
 }
 
@@ -168,14 +168,14 @@ export function upsertQuestion(data){
   else questions.push(q);
   questions.sort((a, b) => a.id - b.id);
   // Save to file
-  const qPath = path.join(__dirname, 'questions.json');
+  const qPath = path.join(storeDir, 'questions.json');
   fs.writeFileSync(qPath, JSON.stringify(questions, null, 2));
   return q;
 }
 
 export function deleteQuestion(id){
   questions = questions.filter(q => q.id !== id);
-  const qPath = path.join(__dirname, 'questions.json');
+  const qPath = path.join(storeDir, 'questions.json');
   fs.writeFileSync(qPath, JSON.stringify(questions, null, 2));
 }
 
