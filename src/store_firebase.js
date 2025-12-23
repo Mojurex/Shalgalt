@@ -11,7 +11,15 @@ async function initAdmin() {
     const mod = await import('firebase-admin');
     const firebaseAdmin = mod.default || mod;
     if (!firebaseAdmin.apps.length) {
-      const svc = process.env.FIREBASE_SERVICE_ACCOUNT ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT) : null;
+      let svc = null;
+      if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+        try {
+          svc = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+        } catch (err) {
+          console.error('FIREBASE_SERVICE_ACCOUNT JSON parse error:', err.message);
+          throw new Error('FIREBASE_SERVICE_ACCOUNT is not valid JSON');
+        }
+      }
       if (svc) {
         firebaseAdmin.initializeApp({
           credential: firebaseAdmin.credential.cert(svc),

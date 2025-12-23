@@ -7,18 +7,30 @@ import * as fileStore from './store.js';
 let fbStore = null;
 const useFirebase = (process.env.USE_FIREBASE === 'true' || !!process.env.FIREBASE_SERVICE_ACCOUNT);
 let backend = 'file';
+let logged = false;
 
 async function ensureFb(){
-  if (!useFirebase) return null;
+  if (!useFirebase) {
+    if (!logged) {
+      console.warn('Firebase disabled: set USE_FIREBASE=true and FIREBASE_SERVICE_ACCOUNT to enable Firestore.');
+      logged = true;
+    }
+    return null;
+  }
   if (fbStore) return fbStore;
   try {
     // Dynamic ESM import for Netlify Functions compatibility
     fbStore = await import('./store_firebase.js');
     backend = 'firebase';
+    if (!logged) {
+      console.info('Firebase store active');
+      logged = true;
+    }
     return fbStore;
   } catch (e) {
     console.warn('Firebase store failed to load, falling back to file-based store:', e.message);
     backend = 'file';
+    logged = true;
     return null;
   }
 }
