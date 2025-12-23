@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { initStore, upsertUser, listUsers, updateUser, deleteUser } from '../../src/store.js';
+import { initStore, upsertUser, listUsers, updateUser, deleteUser } from '../../src/store.node.js';
 
 dotenv.config();
 initStore();

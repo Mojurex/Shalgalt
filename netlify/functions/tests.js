@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { initStore, startTest, saveAnswers, computeScore, saveEssay, finishTest, getResult, getQuestionsForTest, getModuleScore, getAllTests } from '../../src/store.js';
+import { initStore, startTest, saveAnswers, computeScore, saveEssay, finishTest, getResult, getQuestionsForTest, getModuleScore, getAllTests } from '../../src/store.node.js';
 import nodemailer from 'nodemailer';
 
 dotenv.config();

@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import nodemailer from 'nodemailer';
-import { initStore } from '../../src/store.js';
+import { initStore } from '../../src/store.node.js';
 
 dotenv.config();
 initStore();

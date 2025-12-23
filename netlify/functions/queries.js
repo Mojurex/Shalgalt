@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { initStore, getAllTests, getQuestions, getQuestionsAdmin, upsertQuestion, deleteQuestion } from '../../src/store.js';
+import { initStore, getAllTests, getQuestions, getQuestionsAdmin, upsertQuestion, deleteQuestion } from '../../src/store.node.js';
 
 dotenv.config();
 initStore();
