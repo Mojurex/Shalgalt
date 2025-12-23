@@ -6,6 +6,7 @@ import * as fileStore from './store.js';
 
 let fbStore = null;
 const useFirebase = (process.env.USE_FIREBASE === 'true' || !!process.env.FIREBASE_SERVICE_ACCOUNT);
+let backend = 'file';
 
 async function ensureFb(){
   if (!useFirebase) return null;
@@ -13,9 +14,11 @@ async function ensureFb(){
   try {
     // Dynamic ESM import for Netlify Functions compatibility
     fbStore = await import('./store_firebase.js');
+    backend = 'firebase';
     return fbStore;
   } catch (e) {
     console.warn('Firebase store failed to load, falling back to file-based store:', e.message);
+    backend = 'file';
     return null;
   }
 }
@@ -50,6 +53,12 @@ export async function deleteUser(id){
   const fb = await ensureFb();
   if (fb && fb.deleteUser) return fb.deleteUser(id);
   return fileStore.deleteUser(id);
+}
+
+// Introspection helper: which backend is active
+export async function getBackend(){
+  await ensureFb();
+  return backend;
 }
 
 // Everything else from file store

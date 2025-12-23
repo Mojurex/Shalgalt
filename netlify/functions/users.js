@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { initStore, upsertUser, listUsers, updateUser, deleteUser } from '../../src/store.node.js';
+import { initStore, upsertUser, listUsers, updateUser, deleteUser, getBackend } from '../../src/store.node.js';
 
 dotenv.config();
 await initStore();
@@ -18,6 +18,10 @@ export const handler = async (event, context) => {
       }
       const user = await upsertUser({ name, age, email, phone });
       return { statusCode: 200, body: JSON.stringify(user) };
+    }
+
+    if (method === 'GET' && remainder === 'status') {
+      return { statusCode: 200, body: JSON.stringify({ backend: await getBackend() }) };
     }
 
     if (method === 'GET' && !id) {
