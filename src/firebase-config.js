@@ -5,6 +5,7 @@
 export const firebaseConfig = {
   apiKey: "AIzaSyAiFFEUcohyDcNiJJyUZtrLME3axkXe4BY",
   authDomain: "satmath-5c66b.firebaseapp.com",
+  databaseURL: "https://satmath-5c66b-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "satmath-5c66b",
   storageBucket: "satmath-5c66b.firebasestorage.app",
   messagingSenderId: "831526170910",
@@ -12,6 +13,8 @@ export const firebaseConfig = {
   measurementId: "G-FV2C3GWJS6"
 };
 
-// Initialize Firebase (when needed for auth, DB, etc.)
+// Initialize Firebase (browser-only)
 // import { initializeApp } from "firebase/app";
+// import { getAnalytics } from "firebase/analytics";
 // const app = initializeApp(firebaseConfig);
+// if (typeof window !== 'undefined') getAnalytics(app);
