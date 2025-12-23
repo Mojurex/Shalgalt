@@ -1,0 +1,7 @@
+# Vercel deployment
+
+node_modules
+.env
+data/db.json
+.DS_Store
+Sat/*.pdf
