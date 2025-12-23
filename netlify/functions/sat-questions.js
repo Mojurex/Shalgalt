@@ -6,8 +6,10 @@ initStore();
 
 export const handler = async (event, context) => {
   const method = event.httpMethod;
-  const pathParts = event.path.replace(/^\/api\//, '').split('/').filter(Boolean);
-  const id = pathParts[1];
+  const fnPath = (event.path || '').split('/.netlify/functions/')[1] || '';
+  const parts = fnPath.split('/').filter(Boolean);
+  // parts[0] === 'sat-questions', parts[1] === id?
+  const id = parts[1];
 
   try {
     if (method === 'GET' && event.path.includes('/admin')) {

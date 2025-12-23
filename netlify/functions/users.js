@@ -6,8 +6,9 @@ initStore();
 
 export const handler = async (event, context) => {
   const method = event.httpMethod;
-  const path = event.path.replace(/^\/api\/users\/?/, '');
-  const id = path.split('/')[0];
+  const fnPath = (event.path || '').split('/.netlify/functions/')[1] || '';
+  const remainder = fnPath.replace(/^users\/?/, '');
+  const id = remainder.split('/')[0] || '';
 
   try {
     if (method === 'POST' && !id) {

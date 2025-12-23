@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import { initStore, startTest, saveAnswers, computeScore, saveEssay, finishTest, getResult, getQuestionsForTest, getModuleScore } from '../../src/store.js';
+import { initStore, startTest, saveAnswers, computeScore, saveEssay, finishTest, getResult, getQuestionsForTest, getModuleScore, getAllTests } from '../../src/store.js';
 import nodemailer from 'nodemailer';
 
 dotenv.config();
@@ -33,12 +33,14 @@ function toLevel(score){
 
 export const handler = async (event, context) => {
   const method = event.httpMethod;
-  const pathParts = event.path.replace(/^\/api\//, '').split('/').filter(Boolean);
-  const testId = pathParts[1];
-  const action = pathParts[2];
+  const fnPath = (event.path || '').split('/.netlify/functions/')[1] || '';
+  const parts = fnPath.split('/').filter(Boolean);
+  // parts[0] === 'tests', parts[1] === testId or action
+  const testId = parts[1] && /^\d+$/.test(parts[1]) ? Number(parts[1]) : undefined;
+  const action = parts[1] && !testId ? parts[1] : parts[2];
 
   try {
-    if (pathParts[0] === 'tests') {
+    if (parts[0] === 'tests') {
       if (method === 'POST' && action === 'start') {
         const { userId, examType } = JSON.parse(event.body || '{}');
         if (!userId) return { statusCode: 400, body: JSON.stringify({ error: 'userId required' }) };
@@ -51,12 +53,14 @@ export const handler = async (event, context) => {
         if (!Array.isArray(answers)) {
           return { statusCode: 400, body: JSON.stringify({ error: 'answers[] required' }) };
         }
-        saveAnswers(Number(testId), answers);
+        if (!testId) return { statusCode: 400, body: JSON.stringify({ error: 'testId missing in path' }) };
+        saveAnswers(testId, answers);
         return { statusCode: 200, body: JSON.stringify({ ok: true }) };
       }
 
       if (method === 'GET' && action === 'questions') {
-        const qs = getQuestionsForTest(Number(testId));
+        if (!testId) return { statusCode: 400, body: JSON.stringify({ error: 'testId missing in path' }) };
+        const qs = getQuestionsForTest(testId);
         if(!qs || qs.length === 0) {
           return { statusCode: 404, body: JSON.stringify({ error: 'No questions' }) };
         }
@@ -64,30 +68,35 @@ export const handler = async (event, context) => {
       }
 
       if (method === 'POST' && action === 'finish-answers') {
-        const score = computeScore(Number(testId));
+        if (!testId) return { statusCode: 400, body: JSON.stringify({ error: 'testId missing in path' }) };
+        const score = computeScore(testId);
         return { statusCode: 200, body: JSON.stringify({ score, level: toLevel(score) }) };
       }
 
       if (method === 'GET' && action === 'module-score') {
         const section = (event.queryStringParameters?.section || 'verbal').toLowerCase();
-        const { correct, total } = getModuleScore(Number(testId), section === 'math' ? 'math' : 'verbal');
+        if (!testId) return { statusCode: 400, body: JSON.stringify({ error: 'testId missing in path' }) };
+        const { correct, total } = getModuleScore(testId, section === 'math' ? 'math' : 'verbal');
         return { statusCode: 200, body: JSON.stringify({ correct, total }) };
       }
 
       if (method === 'POST' && action === 'essay1') {
         const { text } = JSON.parse(event.body || '{}');
-        const result = saveEssay(Number(testId), 'essay1', text || '');
+        if (!testId) return { statusCode: 400, body: JSON.stringify({ error: 'testId missing in path' }) };
+        const result = saveEssay(testId, 'essay1', text || '');
         return { statusCode: 200, body: JSON.stringify({ ok: true, words: result.words }) };
       }
 
       if (method === 'POST' && action === 'essay2') {
         const { text } = JSON.parse(event.body || '{}');
-        const result = saveEssay(Number(testId), 'essay2', text || '');
+        if (!testId) return { statusCode: 400, body: JSON.stringify({ error: 'testId missing in path' }) };
+        const result = saveEssay(testId, 'essay2', text || '');
         return { statusCode: 200, body: JSON.stringify({ ok: true, words: result.words }) };
       }
 
       if (method === 'POST' && action === 'finish') {
-        const result = finishTest(Number(testId));
+        if (!testId) return { statusCode: 400, body: JSON.stringify({ error: 'testId missing in path' }) };
+        const result = finishTest(testId);
         if (result.error) {
           return { statusCode: 400, body: JSON.stringify({ error: result.error }) };
         }
@@ -95,9 +104,15 @@ export const handler = async (event, context) => {
       }
 
       if (method === 'GET' && action === 'result') {
-        const data = getResult(Number(testId));
+        if (!testId) return { statusCode: 400, body: JSON.stringify({ error: 'testId missing in path' }) };
+        const data = getResult(testId);
         if (!data) return { statusCode: 404, body: JSON.stringify({ error: 'Not found' }) };
         return { statusCode: 200, body: JSON.stringify(data) };
+      }
+
+      // Admin: /api/tests/all → /.netlify/functions/tests/all
+      if (method === 'GET' && action === 'all') {
+        return { statusCode: 200, body: JSON.stringify(getAllTests()) };
       }
     }
 
