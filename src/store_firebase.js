@@ -8,7 +8,8 @@ async function initAdmin() {
   if (db) return db;
   try {
     // Dynamic import for ESM compatibility with Netlify bundler
-    const firebaseAdmin = (await import('firebase-admin')).default || await import('firebase-admin');
+    const mod = await import('firebase-admin');
+    const firebaseAdmin = mod.default || mod;
     if (!firebaseAdmin.apps.length) {
       const svc = process.env.FIREBASE_SERVICE_ACCOUNT ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT) : null;
       if (svc) {
@@ -44,7 +45,7 @@ async function nextCounter(name) {
 }
 
 export async function initStore(){
-  await initAdmin();
+  return initAdmin();
 }
 
 export async function upsertUser({ name, age, email, phone }){
