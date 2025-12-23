@@ -1,0 +1,21 @@
+{
+  "name": "shalgalt-english-placement",
+  "version": "1.0.0",
+  "description": "English level placement test web app (Mongolian UI)",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "4.21.1",
+    "jspdf": "^3.0.4",
+    "nodemailer": "^7.0.11",
+    "pdfkit": "^0.17.2"
+  },
+  "devDependencies": {
+    "nodemon": "3.1.7"
+  }
+}

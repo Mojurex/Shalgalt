@@ -1,0 +1,332 @@
+[
+  {
+    "id": 1,
+    "text": "A group of students voted on five after-school activities. The bar graph shows the number of students who voted for each of the five activities.How many students chose activity 3?",
+    "options": [
+      "25",
+      "39",
+      "48",
+      "50"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": 2,
+    "text": "Pick the right article: I bought ___ umbrella.",
+    "options": [
+      "a",
+      "an",
+      "the",
+      "—"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": 3,
+    "text": "Find the synonym of 'happy'.",
+    "options": [
+      "sad",
+      "glad",
+      "angry",
+      "tired"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": 4,
+    "text": "Choose the past form: They ____ football yesterday.",
+    "options": [
+      "play",
+      "plays",
+      "played",
+      "playing"
+    ],
+    "correct_index": 2
+  },
+  {
+    "id": 5,
+    "text": "Which sentence is correct?",
+    "options": [
+      "He don't like tea.",
+      "He doesn't likes tea.",
+      "He doesn't like tea.",
+      "He not like tea."
+    ],
+    "correct_index": 2
+  },
+  {
+    "id": 6,
+    "text": "Fill in: I have lived here ___ 2019.",
+    "options": [
+      "for",
+      "since",
+      "from",
+      "by"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": 7,
+    "text": "Comparative form: This book is ____ than that one.",
+    "options": [
+      "good",
+      "better",
+      "best",
+      "more good"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": 8,
+    "text": "Vocabulary: A person who teaches is a ____.",
+    "options": [
+      "doctor",
+      "teacher",
+      "driver",
+      "farmer"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": 9,
+    "text": "Preposition: She is interested ___ music.",
+    "options": [
+      "on",
+      "at",
+      "in",
+      "to"
+    ],
+    "correct_index": 2
+  },
+  {
+    "id": 10,
+    "text": "Choose the correct question: ____ you like coffee?",
+    "options": [
+      "Do",
+      "Does",
+      "Did",
+      "Are"
+    ],
+    "correct_index": 0
+  },
+  {
+    "id": 11,
+    "text": "Past continuous: He ____ when I called.",
+    "options": [
+      "sleep",
+      "was sleeping",
+      "slept",
+      "is sleeping"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": 12,
+    "text": "Modal verbs: You ____ wear a helmet.",
+    "options": [
+      "should",
+      "mustn't",
+      "can to",
+      "did"
+    ],
+    "correct_index": 0
+  },
+  {
+    "id": 13,
+    "text": "Choose the correct word: It's too ____ to walk.",
+    "options": [
+      "far",
+      "long",
+      "away",
+      "many"
+    ],
+    "correct_index": 0
+  },
+  {
+    "id": 14,
+    "text": "Conditional I: If it rains, we ____ home.",
+    "options": [
+      "stay",
+      "will stay",
+      "stayed",
+      "stays"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": 15,
+    "text": "Passive voice: The cake ____ by my mom.",
+    "options": [
+      "was baked",
+      "baked",
+      "is bake",
+      "has bake"
+    ],
+    "correct_index": 0
+  },
+  {
+    "id": 16,
+    "text": "Choose the correct preposition: I'm looking ____ my keys.",
+    "options": [
+      "for",
+      "to",
+      "after",
+      "on"
+    ],
+    "correct_index": 0
+  },
+  {
+    "id": 17,
+    "text": "Reported speech: He said he ____ tired.",
+    "options": [
+      "is",
+      "was",
+      "were",
+      "be"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": 18,
+    "text": "Vocabulary: The opposite of 'cheap' is ____.",
+    "options": [
+      "expensive",
+      "costly",
+      "low",
+      "little"
+    ],
+    "correct_index": 0
+  },
+  {
+    "id": 19,
+    "text": "Choose the correct form: She has ____ her homework.",
+    "options": [
+      "do",
+      "did",
+      "done",
+      "doing"
+    ],
+    "correct_index": 2
+  },
+  {
+    "id": 20,
+    "text": "Adverbs: He runs very ____.",
+    "options": [
+      "fastly",
+      "fast",
+      "faster",
+      "more fast"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": 21,
+    "text": "Present perfect: I ____ this movie three times.",
+    "options": [
+      "saw",
+      "have seen",
+      "see",
+      "had seen"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": 22,
+    "text": "Choose the correct word: There are ____ people at the party.",
+    "options": [
+      "much",
+      "many",
+      "a much",
+      "a many"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": 23,
+    "text": "Article use: ____ Everest is the highest mountain.",
+    "options": [
+      "A",
+      "An",
+      "The",
+      "—"
+    ],
+    "correct_index": 2
+  },
+  {
+    "id": 24,
+    "text": "Gerund/Infinitive: I enjoy ____ books.",
+    "options": [
+      "to read",
+      "reading",
+      "read",
+      "to reading"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": 25,
+    "text": "Relative pronoun: The man ____ lives next door is kind.",
+    "options": [
+      "which",
+      "who",
+      "whom",
+      "whose"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": 26,
+    "text": "Choose the collocation: Make a ____.",
+    "options": [
+      "photo",
+      "decision",
+      "sleep",
+      "homework"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": 27,
+    "text": "Phrasal verb: Turn ____ the lights, please.",
+    "options": [
+      "up",
+      "on",
+      "out",
+      "over"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": 28,
+    "text": "Tense choice: By 8 pm, I ____ my work.",
+    "options": [
+      "finish",
+      "finished",
+      "will have finished",
+      "have finished"
+    ],
+    "correct_index": 2
+  },
+  {
+    "id": 29,
+    "text": "Countable/Uncountable: There isn't ____ milk left.",
+    "options": [
+      "many",
+      "much",
+      "few",
+      "a few"
+    ],
+    "correct_index": 1
+  },
+  {
+    "id": 30,
+    "text": "Word choice: She speaks English ____.",
+    "options": [
+      "fluent",
+      "fluently",
+      "fluency",
+      "more fluent"
+    ],
+    "correct_index": 1
+  }
+]

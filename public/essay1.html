@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Эссэ 1 - Миний тухай</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="container">
+    <div class="hero card">
+      <div>
+        <h1 style="margin:0">Эссэ 1: Миний тухай</h1>
+        <p class="muted" style="margin:4px 0 0">300+ үг · 5 секунд тутамд автоматаар хадгална</p>
+      </div>
+      <div class="pill">✍️ Сэдэв: өөрийгөө танилцуул</div>
+    </div>
+  </header>
+  <main class="container card">
+    <p class="note">Сэдэв: Өөрийнхөө тухай 300+ үг англи хэлээр бичнэ үү.</p>
+    <textarea id="essay" rows="14" placeholder="Энд англи хэлээр эссэ бичнэ..."></textarea>
+    <div style="margin:12px 0;padding:12px;background:#0d1117;border-radius:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <div>
+          <span id="word-count" style="font-weight:bold;color:var(--accent)">0</span>
+          <span style="color:var(--muted)">/300 үг</span>
+        </div>
+        <div id="progress-hint" style="font-size:0.9rem;color:var(--muted)">Дараах товч дараж болно</div>
+      </div>
+      <div class="word-progress"><span id="word-bar"></span></div>
+    </div>
+    <div class="actions between">
+      <div></div>
+      <button id="next" class="primary">Дараах</button>
+    </div>
+  </main>
+  <div id="toast" class="toast"></div>
+  <script>window.ESSAY_TOPIC = 'essay1';</script>
+  <script src="/js/essay.js" defer></script>
+</body>
+</html>

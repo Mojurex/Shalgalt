@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Админ - Хэрэглэгчид</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    /* Mobile responsive table */
+    @media (max-width: 768px) {
+      .table-wrap {
+        overflow-x: auto;
+      }
+      
+      table {
+        min-width: 800px;
+      }
+      
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Login styles */
+    #login-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .login-card {
+      background: white;
+      padding: 40px;
+      border-radius: 8px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-card h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #333;
+    }
+
+    .login-card input {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+    }
+
+    .login-card input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .login-card button {
+      width: 100%;
+      padding: 12px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .login-card button:hover {
+      background: #5568d3;
+    }
+
+    .login-error {
+      color: #d32f2f;
+      text-align: center;
+      margin-bottom: 15px;
+      font-size: 14px;
+    }
+
+    #admin-content {
+      display: none;
+    }
+
+    /* Contact list styles */
+    .phone-call-btn {
+      background: #4CAF50;
+      color: white;
+      padding: 6px 12px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .phone-call-btn:hover {
+      background: #45a049;
+    }
+
+    .contact-card {
+      background: #f5f5f5;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 4px;
+      border-left: 4px solid #667eea;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .contact-info h3 {
+      margin: 0 0 8px 0;
+      font-size: 16px;
+    }
+
+    .contact-info p {
+      margin: 4px 0;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .contact-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    @media (max-width: 768px) {
+      .contact-card {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .contact-actions {
+        width: 100%;
+        margin-top: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Login Container -->
+  <div id="login-container">
+    <div class="login-card">
+      <h2>Админ нэвтрэх</h2>
+      <div id="login-error" class="login-error"></div>
+      <form id="login-form">
+        <input
+          type="text"
+          id="username"
+          placeholder="Нэвтрэх нэр"
+          required
+          autocomplete="username"
+        />
+        <input
+          type="password"
+          id="password"
+          placeholder="Нууц үг"
+          required
+          autocomplete="current-password"
+        />
+        <button type="submit">Нэвтрэх</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Content (Hidden by default) -->
+  <div id="admin-content">
+    <header class="container">
+      <div class="hero card">
+        <div>
+          <h1 style="margin:0">Админ: Хэрэглэгчийн мэдээлэл</h1>
+          <p class="muted" style="margin:4px 0 0">Хэрэглэгч, тестийн дүн, түвшин хянах</p>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <div class="pill">🔄 10 сек тутамд шинэчилнэ</div>
+          <button id="logout-btn" class="secondary" style="padding: 6px 12px; margin: 0;">Гарах</button>
+        </div>
+      </div>
+    </header>
+    <main class="container card">
+    <h2>Статистик</h2>
+    <div id="stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px">
+      <div class="stat-card">
+        <div class="stat-label">Нийт тест</div>
+        <div class="stat-value" id="stat-total">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Дундаж оноо</div>
+        <div class="stat-value" id="stat-avg">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">A1-A2</div>
+        <div class="stat-value" id="stat-a">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">B1-B2</div>
+        <div class="stat-value" id="stat-b">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">C1</div>
+        <div class="stat-value" id="stat-c">0</div>
+      </div>
+    </div>
+    
+    <h2>Хэрэглэгчдийн холбоо</h2>
+    <div id="contact-list" style="margin-bottom: 30px;"></div>
+
+    <h2>Шинээр нэмэх</h2>
+    <form id="add-form" class="form-grid">
+      <input type="text" id="a-name" placeholder="Нэр" required />
+      <input type="number" id="a-age" placeholder="Нас" required />
+      <input type="email" id="a-email" placeholder="Email" required />
+      <input type="tel" id="a-phone" placeholder="Утас" required />
+      <button type="submit" class="primary">Нэмэх/Шинэчлэх</button>
+    </form>
+
+    <h2>Жагсаалт</h2>
+    <div class="table-wrap">
+      <table id="users-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Нэр</th>
+            <th>Нас</th>
+            <th>Email</th>
+            <th>Утас</th>
+            <th>Тест</th>
+            <th>Үйлдэл</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <h2 style="margin-top:18px">Бүх тестийн жагсаалт</h2>
+    <div id="all-tests"></div>
+    <section class="container" id="satMaterialsSection">
+      <h2>SAT материалууд</h2>
+      <p>Доорх жагсаалтаас файлуудыг сонгоод имэйлээр явуулна.</p>
+      <div id="satMaterials"></div>
+      <div style="margin-top:12px; display:flex; gap:8px; align-items:center;">
+        <input id="satEmail" type="email" placeholder="Хүлээн авах имэйл" style="flex:1; padding:8px;">
+        <button id="sendSatBtn" class="primary">Илгээх</button>
+      </div>
+      <div id="satSendStatus" style="margin-top:8px;"></div>
+    </section>
+    <div class="actions">
+      <a href="/questions.html" class="primary">Placement асуулт засах</a>
+      <a href="/sat-questions.html" class="primary">SAT асуулт засах</a>
+      <a href="/" class="secondary">Эхлэл</a>
+    </div>
+    </main>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script>
+    // Login functionality
+    const loginForm = document.getElementById('login-form');
+    const loginContainer = document.getElementById('login-container');
+    const adminContent = document.getElementById('admin-content');
+    const logoutBtn = document.getElementById('logout-btn');
+    const loginError = document.getElementById('login-error');
+
+    const CORRECT_USERNAME = 'mojuh';
+    const CORRECT_PASSWORD = 'admin0527';
+
+    // Check if already logged in
+    if (sessionStorage.getItem('adminLoggedIn') === 'true') {
+      loginContainer.style.display = 'none';
+      adminContent.style.display = 'block';
+    }
+
+    // Handle login form submission
+    loginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      if (username === CORRECT_USERNAME && password === CORRECT_PASSWORD) {
+        sessionStorage.setItem('adminLoggedIn', 'true');
+        loginError.textContent = '';
+        loginContainer.style.display = 'none';
+        adminContent.style.display = 'block';
+        // Reset form
+        loginForm.reset();
+      } else {
+        loginError.textContent = 'Нэвтрэх нэр эсвэл нууц үг буруу байна';
+      }
+    });
+
+    // Handle logout
+    logoutBtn.addEventListener('click', () => {
+      sessionStorage.removeItem('adminLoggedIn');
+      loginContainer.style.display = 'flex';
+      adminContent.style.display = 'none';
+      loginForm.reset();
+      loginError.textContent = '';
+    });
+  </script>
+  <script src="/js/admin.js" defer></script>
+  
+</body>
+</html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Англи хэлний түвшин тогтоох шалгалт</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="container">
+    <div class="hero card" style="align-items:flex-start">
+      <div>
+        <div class="chip">🚀 SAT Placement</div>
+        <h1 style="margin:6px 0 4px">SAT түвшин тогтоох тест</h1>
+        <p class="muted" style="margin:0">57 тест · 70 минут</p>
+      </div>
+      <div class="pill">⏱ Хугацаа: 70 минут</div>
+    </div>
+  </header>
+  <main class="container card">
+    <h2 style="font-size:1.4rem">Ерөнхий мэдээлэл</h2>
+    <p class="note" style="margin-top:-4px">Бөглөсний дараа шууд тест рүү шилжих болно.</p>
+    <form id="user-form" class="form-grid">
+      <label>
+        Нэр
+        <input type="text" id="name" placeholder="Овог Нэр" required />
+      </label>
+      <label>
+        Нас
+        <input type="number" id="age" placeholder="18" min="5" max="100" required />
+      </label>
+      <label>
+        Email
+        <input type="email" id="email" placeholder="name@example.com" required />
+      </label>
+      <label>
+        Утасны дугаар
+        <input type="tel" id="phone" placeholder="99999999" required />
+      </label>
+      <div class="actions" style="justify-content:space-between">
+        <span class="note">Нэр, Email, Утас заавал шаардана.</span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button type="button" id="start-sat" class="primary">SAT түвшин тогтоох</button>
+        </div>
+      </div>
+    </form>
+    <p class="note">Мэдээлэл дутуу бол баруун доор анхааруулга гарна.</p>
+  </main>
+
+  <div id="toast" class="toast"></div>
+  <script src="/js/index.js" defer></script>
+
+  <script>
+    const PDFDocument = require('pdfkit');
+
+    // Үр дүнгийн PDF үүсгэх
+    async function buildResultPdf(user, test) {
+      return new Promise((resolve) => {
+        const doc = new PDFDocument({ size: 'A4', margin: 50 });
+        const chunks = [];
+        doc.on('data', d => chunks.push(d));
+        doc.on('end', () => resolve(Buffer.concat(chunks)));
+
+        doc.fontSize(20).text('Exam Result', { align: 'center' }).moveDown();
+        doc.fontSize(14).text(`Name: ${user.name}`);
+        doc.text(`Email: ${user.email}`);
+        doc.text(`Exam: ${(test.exam_type || 'Placement').toUpperCase()}`);
+        doc.text(`Score: ${test.score}/30`);
+        doc.text(`Level: ${test.level}`);
+        doc.text(`Date: ${new Date(test.createdAt).toLocaleString()}`);
+
+        if ((test.exam_type || '').toLowerCase() === 'sat') {
+          doc.moveDown().fontSize(12).text(
+            'Note: Official SAT materials are not distributed. This PDF contains only your result and general guidance.'
+          );
+        }
+        doc.end();
+      });
+    }
+
+    // Тест дуусах маршрут дээр PDF хавсаргаж имэйл явуулах
+    app.post('/api/tests/complete', async (req, res) => {
+      const { testId, score, level } = req.body;
+      const test = store.completeTest(testId, score, level);
+      const user = store.getUsers().find(u => u.id === test.userId);
+      res.json(test);
+
+      try {
+        const pdf = await buildResultPdf(user, test);
+        await transporter.sendMail({
+          to: user.email,
+          from: process.env.SMTP_USER,
+          subject: `${(test.exam_type || 'Placement').toUpperCase()} result`,
+          text: `Сайн байна, ${user.name}. Таны түвшин: ${level} (${score}/30).`,
+          attachments: [{ filename: 'result.pdf', content: pdf }]
+        });
+      } catch (err) {
+        console.error('Email send failed:', err);
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Тест</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="container">
+    <div class="hero card">
+      <div>
+        <h1 style="margin:0">Тест</h1>
+        <p class="muted" style="margin:4px 0 0">SAT: 54 тест · 70 минут · Автоматаар хадгална</p>
+      </div>
+      <div class="chip" id="exam-chip">💾 Автоматаар хадгална</div>
+    </div>
+  </header>
+  <main class="container card">
+    <div class="test-header">
+      <div>Асуултууд</div>
+      <div style="display:flex;gap:20px;align-items:center">
+        <div id="timer" style="color:var(--accent-2);font-weight:bold">60:00</div>
+        <div style="min-width:60px;text-align:right" id="page-indicator"></div>
+      </div>
+    </div>
+    <div class="progress"><span id="progress-bar"></span></div>
+    <div id="question-container"></div>
+    <div class="actions between sticky-actions">
+      <button id="prev" class="secondary">Өмнөх</button>
+      <div class="note">Амжилт</div>
+      <button id="next" class="primary">Дараах</button>
+    </div>
+  </main>
+  <div id="toast" class="toast"></div>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="/js/test.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SAT асуулт засах</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="container">
+    <div class="hero card">
+      <div>
+        <h1 style="margin:0">SAT асуулт засах</h1>
+        <p class="muted" style="margin:4px 0 0">SAT Verbal (27) + Math (27) асуултуудыг засах</p>
+      </div>
+      <div class="pill">🛠 Admin only</div>
+    </div>
+  </header>
+  <main class="container card">
+    <div style="margin-bottom:24px">
+      <label style="display:block;margin-bottom:8px">
+        <input type="radio" name="section" value="verbal" checked> Модуль 1: Verbal (27 асуулт)
+      </label>
+      <label style="display:block">
+        <input type="radio" name="section" value="math"> Модуль 2: Math (27 асуулт)
+      </label>
+    </div>
+
+    <h2>Шинэ асуулт нэмэх</h2>
+    <form id="add-form" style="display:grid;gap:12px">
+      <input type="number" id="q-id" placeholder="ID (1-27 Verbal, 101-127 Math)" min="1" required />
+      <textarea id="q-text" placeholder="Асуултын текст" rows="3" required></textarea>
+      <input type="text" id="q-image" placeholder="Зургийн URL (optional)" />
+      <input type="text" id="q-opt1" placeholder="Сонголт 1" required />
+      <input type="text" id="q-opt2" placeholder="Сонголт 2" required />
+      <input type="text" id="q-opt3" placeholder="Сонголт 3" required />
+      <input type="text" id="q-opt4" placeholder="Сонголт 4" required />
+      <select id="q-correct" required>
+        <option value="">Зөв хариулт (A/B/C/D)</option>
+        <option value="0">A</option>
+        <option value="1">B</option>
+        <option value="2">C</option>
+        <option value="3">D</option>
+      </select>
+      <small class="muted">Тайлбар: A→0, B→1, C→2, D→3 гэж хадгална.</small>
+      <button type="submit" class="primary">Хадгалах</button>
+    </form>
+
+    <h2>Одоогийн асуултууд</h2>
+    <div id="questions-list"></div>
+    
+    <div class="actions">
+      <a href="/admin.html" class="secondary">Админ руу буцах</a>
+    </div>
+  </main>
+  <div id="toast" class="toast"></div>
+  <script src="/js/sat-questions.js" defer></script>
+</body>
+</html>
