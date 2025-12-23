@@ -3,7 +3,7 @@ import { initStore, startTest, saveAnswers, computeScore, saveEssay, finishTest,
 import nodemailer from 'nodemailer';
 
 dotenv.config();
-initStore();
+await initStore();
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',

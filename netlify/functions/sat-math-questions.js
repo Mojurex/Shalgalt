@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import { initStore, getSATQuestions, getSATQuestionsAdmin, upsertSATQuestion, deleteSATQuestion } from '../../src/store.node.js';
 
 dotenv.config();
-initStore();
+await initStore();
 
 export const handler = async (event, context) => {
   const method = event.httpMethod;
