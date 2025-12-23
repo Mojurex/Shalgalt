@@ -2,8 +2,14 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-const storeFile = fileURLToPath(import.meta.url);
-const storeDir = path.dirname(storeFile);
+let storeFile, storeDir;
+try {
+  storeFile = fileURLToPath(import.meta.url);
+  storeDir = path.dirname(storeFile);
+} catch (e) {
+  // Fallback for CommonJS bundlers (Netlify Functions) that don't preserve import.meta
+  storeDir = path.resolve(path.dirname('.'), 'src');
+}
 
 // Determine a writable data directory. On Netlify Functions, the code
 // directory is read-only, so we fall back to /tmp.
