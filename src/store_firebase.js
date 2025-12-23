@@ -4,12 +4,11 @@ dotenv.config();
 let admin = null;
 let db = null;
 
-function initAdmin() {
+async function initAdmin() {
   if (db) return db;
   try {
-    // Lazy import to avoid bundler issues when not used
-    // eslint-disable-next-line global-require
-    const firebaseAdmin = require('firebase-admin');
+    // Dynamic import for ESM compatibility with Netlify bundler
+    const firebaseAdmin = (await import('firebase-admin')).default || await import('firebase-admin');
     if (!firebaseAdmin.apps.length) {
       const svc = process.env.FIREBASE_SERVICE_ACCOUNT ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT) : null;
       if (svc) {
@@ -26,12 +25,13 @@ function initAdmin() {
     db = admin.firestore();
     return db;
   } catch (e) {
+    console.error('Firebase init error:', e.message);
     throw new Error('Firebase Admin SDK is not installed or failed to initialize. Install firebase-admin and set FIREBASE_SERVICE_ACCOUNT env.');
   }
 }
 
 async function nextCounter(name) {
-  const fdb = initAdmin();
+  const fdb = await initAdmin();
   const ref = fdb.collection('counters').doc('global');
   const res = await fdb.runTransaction(async (tx) => {
     const snap = await tx.get(ref);
@@ -44,11 +44,11 @@ async function nextCounter(name) {
 }
 
 export async function initStore(){
-  initAdmin();
+  await initAdmin();
 }
 
 export async function upsertUser({ name, age, email, phone }){
-  const fdb = initAdmin();
+  const fdb = await initAdmin();
   const users = fdb.collection('users');
   const q = await users.where('emailLower', '==', (email||'').toLowerCase()).limit(1).get();
   if (!q.empty) {
@@ -65,13 +65,13 @@ export async function upsertUser({ name, age, email, phone }){
 }
 
 export async function listUsers(){
-  const fdb = initAdmin();
+  const fdb = await initAdmin();
   const snap = await fdb.collection('users').orderBy('created_at', 'desc').get();
   return snap.docs.map(d => d.data());
 }
 
 export async function updateUser(id, payload){
-  const fdb = initAdmin();
+  const fdb = await initAdmin();
   const q = await fdb.collection('users').where('id', '==', Number(id)).limit(1).get();
   if (q.empty) return null;
   const ref = q.docs[0].ref;
@@ -81,7 +81,7 @@ export async function updateUser(id, payload){
 }
 
 export async function deleteUser(id){
-  const fdb = initAdmin();
+  const fdb = await initAdmin();
   const q = await fdb.collection('users').where('id', '==', Number(id)).limit(1).get();
   if (q.empty) return;
   await q.docs[0].ref.delete();

@@ -7,42 +7,47 @@ import * as fileStore from './store.js';
 let fbStore = null;
 const useFirebase = (process.env.USE_FIREBASE === 'true' || !!process.env.FIREBASE_SERVICE_ACCOUNT);
 
-function ensureFb(){
+async function ensureFb(){
   if (!useFirebase) return null;
   if (fbStore) return fbStore;
-  // eslint-disable-next-line global-require
-  fbStore = require('./store_firebase.js');
-  return fbStore;
+  try {
+    // Dynamic ESM import for Netlify Functions compatibility
+    fbStore = await import('./store_firebase.js');
+    return fbStore;
+  } catch (e) {
+    console.warn('Firebase store failed to load, falling back to file-based store:', e.message);
+    return null;
+  }
 }
 
 // Initialization
-export function initStore(){
-  const fb = ensureFb();
+export async function initStore(){
+  const fb = await ensureFb();
   if (fb && fb.initStore) return fb.initStore();
   return fileStore.initStore();
 }
 
-// Users (Firebase if enabled)
-export function upsertUser(payload){
-  const fb = ensureFb();
+// Users (Firebase if enabled, fallback to file store)
+export async function upsertUser(payload){
+  const fb = await ensureFb();
   if (fb && fb.upsertUser) return fb.upsertUser(payload);
   return fileStore.upsertUser(payload);
 }
 
-export function listUsers(){
-  const fb = ensureFb();
+export async function listUsers(){
+  const fb = await ensureFb();
   if (fb && fb.listUsers) return fb.listUsers();
   return fileStore.listUsers();
 }
 
-export function updateUser(id, payload){
-  const fb = ensureFb();
+export async function updateUser(id, payload){
+  const fb = await ensureFb();
   if (fb && fb.updateUser) return fb.updateUser(id, payload);
   return fileStore.updateUser(id, payload);
 }
 
-export function deleteUser(id){
-  const fb = ensureFb();
+export async function deleteUser(id){
+  const fb = await ensureFb();
   if (fb && fb.deleteUser) return fb.deleteUser(id);
   return fileStore.deleteUser(id);
 }

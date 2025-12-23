@@ -2,7 +2,7 @@ import dotenv from 'dotenv';
 import { initStore, upsertUser, listUsers, updateUser, deleteUser } from '../../src/store.node.js';
 
 dotenv.config();
-initStore();
+await initStore();
 
 export const handler = async (event, context) => {
   const method = event.httpMethod;
@@ -16,23 +16,23 @@ export const handler = async (event, context) => {
       if (!name || !age || !email || !phone) {
         return { statusCode: 400, body: JSON.stringify({ error: 'Incomplete user info' }) };
       }
-      const user = upsertUser({ name, age, email, phone });
+      const user = await upsertUser({ name, age, email, phone });
       return { statusCode: 200, body: JSON.stringify(user) };
     }
 
     if (method === 'GET' && !id) {
-      return { statusCode: 200, body: JSON.stringify(listUsers()) };
+      return { statusCode: 200, body: JSON.stringify(await listUsers()) };
     }
 
     if (method === 'PUT' && id) {
       const { name, age, email, phone } = JSON.parse(event.body || '{}');
-      const user = updateUser(Number(id), { name, age, email, phone });
+      const user = await updateUser(Number(id), { name, age, email, phone });
       if (!user) return { statusCode: 404, body: JSON.stringify({ error: 'Not found' }) };
       return { statusCode: 200, body: JSON.stringify(user) };
     }
 
     if (method === 'DELETE' && id) {
-      deleteUser(Number(id));
+      await deleteUser(Number(id));
       return { statusCode: 200, body: JSON.stringify({ ok: true }) };
     }
 
