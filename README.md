@@ -38,15 +38,45 @@ npm start
 
 ---
 
+## 🚀 Netlify дээр байршуулах
+
+Энэ төслийг **Netlify Functions** архитектураар Netlify дээр үнэгүй байршуулж болно.
+
+### Шаардлагатай:
+- GitHub account + repository
+- Netlify account (free tier)
+
+### Хэрхэн:
+1. [Netlify Dashboard](https://app.netlify.com) дээр нэвтрэх
+2. "Add new site" → "Import an existing project"
+3. GitHub Shalgalt repository сонгох
+4. Build settings (автоматаар сэргээлэх):
+   - **Build command**: `npm install`
+   - **Publish directory**: `public`
+5. Environment variables нэмэх (Site settings → Build & Deploy):
+   ```
+   SMTP_HOST=smtp.gmail.com
+   SMTP_PORT=587
+   SMTP_USER=your-email@gmail.com
+   SMTP_PASS=your-app-password
+   ```
+6. Deploy дарна (автоматаар main branch-т push хийвэл update болно)
+
+**Дэлгэрэнгүй нь**: `DEPLOYMENT_NETLIFY.md` файлыг үзнэ
+
+---
+
 ## 📧 Email тохиргоо
 
-`.env` файлд Gmail мэдээллээ оруулна:
+`.env` файлд Gmail мэдээллээ оруулна (localhost-д):
 ```
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=tanii-email@gmail.com
 SMTP_PASS=your-app-password
 ```
+
+Netlify дээр Environment variables-ээр тохирго хийнэ (дээр үзнэ).
 
 ---
 
