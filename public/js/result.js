@@ -72,34 +72,4 @@ async function init(){
   }
 }
 
-document.getElementById('download-pdf')?.addEventListener('click', async ()=>{
-  if(!window.jspdf) return alert('PDF library not loaded');
-  
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  
-  // Header
-  doc.setFontSize(20);
-  doc.text('English Placement Test Certificate', 105, 30, { align: 'center' });
-  
-  doc.setFontSize(12);
-  doc.text('Test Result', 105, 50, { align: 'center' });
-  
-  // Content
-  doc.setFontSize(14);
-  const userId = localStorage.getItem('userId');
-  const userName = localStorage.getItem('userName') || 'Student';
-  
-  doc.text(`Name: ${userName}`, 20, 80);
-  doc.text(`Score: ${resultData.score} / 30`, 20, 100);
-  doc.text(`Level: ${resultData.level}`, 20, 120);
-  doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 140);
-  
-  // Footer
-  doc.setFontSize(10);
-  doc.text('This certificate confirms the completion of the English placement test.', 105, 260, { align: 'center' });
-  
-  doc.save(`English_Test_Certificate_${resultData.level}.pdf`);
-});
-
 init();

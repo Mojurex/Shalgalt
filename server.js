@@ -300,7 +300,6 @@ api.post('/tests/:testId/finish', (req, res) => {
   // Send email notification (async, don't wait)
   const testData = getResult(Number(testId));
   const userId = getAllTests().find(t => t.id === Number(testId))?.user_id;
-  const examType = getAllTests().find(t => t.id === Number(testId))?.exam_type;
   if(userId){
     const users = listUsers();
     const user = users.find(u => u.id === userId);
@@ -318,15 +317,6 @@ api.post('/tests/:testId/finish', (req, res) => {
           <p>Thank you for taking the test.</p>
         `
       };
-      // Attach SAT materials if SAT
-      try{
-        if(examType === 'sat' && fs.existsSync(satDir)){
-          const pdf = fs.readdirSync(satDir).find(f => f.toLowerCase().endsWith('.pdf'));
-          if(pdf){
-            mail.attachments = [{ filename: pdf, path: path.join(satDir, pdf) }];
-          }
-        }
-      }catch(err){ /* ignore attachment errors */ }
       transporter.sendMail(mail).catch(err => console.error('Email send error:', err));
     }
   }

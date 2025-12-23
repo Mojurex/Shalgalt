@@ -11,9 +11,7 @@
   "dependencies": {
     "dotenv": "^17.2.3",
     "express": "4.21.1",
-    "jspdf": "^3.0.4",
-    "nodemailer": "^7.0.11",
-    "pdfkit": "^0.17.2"
+    "nodemailer": "^7.0.11"
   },
   "devDependencies": {
     "nodemon": "3.1.7"

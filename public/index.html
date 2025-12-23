@@ -49,55 +49,5 @@
 
   <div id="toast" class="toast"></div>
   <script src="/js/index.js" defer></script>
-
-  <script>
-    const PDFDocument = require('pdfkit');
-
-    // Үр дүнгийн PDF үүсгэх
-    async function buildResultPdf(user, test) {
-      return new Promise((resolve) => {
-        const doc = new PDFDocument({ size: 'A4', margin: 50 });
-        const chunks = [];
-        doc.on('data', d => chunks.push(d));
-        doc.on('end', () => resolve(Buffer.concat(chunks)));
-
-        doc.fontSize(20).text('Exam Result', { align: 'center' }).moveDown();
-        doc.fontSize(14).text(`Name: ${user.name}`);
-        doc.text(`Email: ${user.email}`);
-        doc.text(`Exam: ${(test.exam_type || 'Placement').toUpperCase()}`);
-        doc.text(`Score: ${test.score}/30`);
-        doc.text(`Level: ${test.level}`);
-        doc.text(`Date: ${new Date(test.createdAt).toLocaleString()}`);
-
-        if ((test.exam_type || '').toLowerCase() === 'sat') {
-          doc.moveDown().fontSize(12).text(
-            'Note: Official SAT materials are not distributed. This PDF contains only your result and general guidance.'
-          );
-        }
-        doc.end();
-      });
-    }
-
-    // Тест дуусах маршрут дээр PDF хавсаргаж имэйл явуулах
-    app.post('/api/tests/complete', async (req, res) => {
-      const { testId, score, level } = req.body;
-      const test = store.completeTest(testId, score, level);
-      const user = store.getUsers().find(u => u.id === test.userId);
-      res.json(test);
-
-      try {
-        const pdf = await buildResultPdf(user, test);
-        await transporter.sendMail({
-          to: user.email,
-          from: process.env.SMTP_USER,
-          subject: `${(test.exam_type || 'Placement').toUpperCase()} result`,
-          text: `Сайн байна, ${user.name}. Таны түвшин: ${level} (${score}/30).`,
-          attachments: [{ filename: 'result.pdf', content: pdf }]
-        });
-      } catch (err) {
-        console.error('Email send failed:', err);
-      }
-    });
-  </script>
 </body>
 </html>
