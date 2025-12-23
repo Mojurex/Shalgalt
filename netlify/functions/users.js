@@ -1,0 +1,43 @@
+import dotenv from 'dotenv';
+import { initStore, upsertUser, listUsers, updateUser, deleteUser } from '../../src/store.js';
+
+dotenv.config();
+initStore();
+
+export const handler = async (event, context) => {
+  const method = event.httpMethod;
+  const path = event.path.replace(/^\/api\/users\/?/, '');
+  const id = path.split('/')[0];
+
+  try {
+    if (method === 'POST' && !id) {
+      const { name, age, email, phone } = JSON.parse(event.body || '{}');
+      if (!name || !age || !email || !phone) {
+        return { statusCode: 400, body: JSON.stringify({ error: 'Incomplete user info' }) };
+      }
+      const user = upsertUser({ name, age, email, phone });
+      return { statusCode: 200, body: JSON.stringify(user) };
+    }
+
+    if (method === 'GET' && !id) {
+      return { statusCode: 200, body: JSON.stringify(listUsers()) };
+    }
+
+    if (method === 'PUT' && id) {
+      const { name, age, email, phone } = JSON.parse(event.body || '{}');
+      const user = updateUser(Number(id), { name, age, email, phone });
+      if (!user) return { statusCode: 404, body: JSON.stringify({ error: 'Not found' }) };
+      return { statusCode: 200, body: JSON.stringify(user) };
+    }
+
+    if (method === 'DELETE' && id) {
+      deleteUser(Number(id));
+      return { statusCode: 200, body: JSON.stringify({ ok: true }) };
+    }
+
+    return { statusCode: 405, body: JSON.stringify({ error: 'Method not allowed' }) };
+  } catch (err) {
+    console.error('Error:', err);
+    return { statusCode: 500, body: JSON.stringify({ error: err.message }) };
+  }
+};

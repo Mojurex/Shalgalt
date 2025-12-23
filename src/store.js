@@ -89,6 +89,51 @@ export function getQuestionsAdmin(){
   return questions.slice();
 }
 
+// SAT Questions
+export function getSATQuestions(section){
+  const set = section === 'math' ? satMathQuestions : satQuestions;
+  return set.map(({ id, text, options, section, image, chart, type }) => ({ id, text, options, section, image, chart, type }));
+}
+
+export function getSATQuestionsAdmin(section){
+  return section === 'math' ? satMathQuestions.slice() : satQuestions.slice();
+}
+
+export function upsertSATQuestion(section, data){
+  const target = section === 'math' ? satMathQuestions : satQuestions;
+  const idx = target.findIndex(q => q.id === data.id);
+  const current = idx >= 0 ? target[idx] : {};
+  const q = {
+    id: data.id,
+    text: data.text,
+    options: data.options,
+    correct_index: data.correct_index,
+    section: section,
+    image: data.image ?? current.image,
+    chart: data.chart ?? current.chart,
+    type: data.type ?? current.type ?? 'mcq',
+    answer: data.answer ?? current.answer
+  };
+  if(idx >= 0) target[idx] = q;
+  else target.push(q);
+  target.sort((a, b) => a.id - b.id);
+  // Save to file
+  const fileName = section === 'math' ? 'sat_math_questions.json' : 'sat_questions.json';
+  const filePath = path.join(__dirname, fileName);
+  fs.writeFileSync(filePath, JSON.stringify(target, null, 2));
+  return q;
+}
+
+export function deleteSATQuestion(section, id){
+  const target = section === 'math' ? satMathQuestions : satQuestions;
+  const filtered = target.filter(q => q.id !== id);
+  if(section === 'math') satMathQuestions = filtered;
+  else satQuestions = filtered;
+  const fileName = section === 'math' ? 'sat_math_questions.json' : 'sat_questions.json';
+  const filePath = path.join(__dirname, fileName);
+  fs.writeFileSync(filePath, JSON.stringify(filtered, null, 2));
+}
+
 export function upsertQuestion(data){
   const idx = questions.findIndex(q => q.id === data.id);
   const current = idx >= 0 ? questions[idx] : {};
