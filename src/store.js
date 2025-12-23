@@ -4,7 +4,26 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const dataDir = path.join(__dirname, '..', 'data');
+
+// Determine a writable data directory. On Netlify Functions, the code
+// directory is read-only, so we fall back to /tmp.
+function resolveDataDir() {
+  const defaultDir = path.join(__dirname, '..', 'data');
+  try {
+    if (!fs.existsSync(defaultDir)) fs.mkdirSync(defaultDir, { recursive: true });
+    const testFile = path.join(defaultDir, '.writecheck');
+    fs.writeFileSync(testFile, 'ok');
+    fs.unlinkSync(testFile);
+    return defaultDir;
+  } catch (e) {
+    const tmpRoot = process.env.TMPDIR || '/tmp';
+    const tmpDir = path.join(tmpRoot, 'shalgalt-data');
+    if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+    return tmpDir;
+  }
+}
+
+const dataDir = resolveDataDir();
 const dbFile = path.join(dataDir, 'db.json');
 
 let db = {

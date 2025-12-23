@@ -15,7 +15,11 @@ async function startTest(examType = 'placement'){
   }
   try{
     const uRes = await fetch('/api/users', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({name, age, email, phone})});
-    if(!uRes.ok){ throw new Error('User save failed'); }
+    if(!uRes.ok){
+      let msg = 'User save failed';
+      try{ msg = (await uRes.text()) || msg; }catch{}
+      throw new Error(msg);
+    }
     const user = await uRes.json();
     localStorage.setItem('userId', user.id);
     localStorage.setItem('userName', user.name);
@@ -23,7 +27,11 @@ async function startTest(examType = 'placement'){
     localStorage.removeItem('testId');
     localStorage.removeItem('timerStart');
     const tRes = await fetch('/api/tests/start', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({userId: user.id, examType})});
-    if(!tRes.ok){ throw new Error('Start test failed'); }
+    if(!tRes.ok){
+      let msg = 'Start test failed';
+      try{ msg = (await tRes.text()) || msg; }catch{}
+      throw new Error(msg);
+    }
     const test = await tRes.json();
     localStorage.setItem('testId', test.id);
     localStorage.setItem('examType', test.exam_type || examType);
