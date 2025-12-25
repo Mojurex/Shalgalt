@@ -11,8 +11,9 @@ export const handler = async (event, context) => {
   const remainder = fnPath.replace(/^users\/?/, '');
   const id = remainder.split('/')[0] || '';
 
-  // Always allow status check (handle any path shape containing users/status)
-  if ((method === 'GET' || method === 'HEAD') && fullPath.includes('/users/status')) {
+  // Always allow status check early
+  const isStatusRoute = remainder.startsWith('status') || fnPath.includes('users/status') || fullPath.includes('/users/status');
+  if ((method === 'GET' || method === 'HEAD') && isStatusRoute) {
     return { statusCode: 200, body: JSON.stringify({ backend: await getBackend() }) };
   }
 
