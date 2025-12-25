@@ -86,6 +86,7 @@ function getPageStart(pageNum){
 }
 
 function render(){
+  window.scrollTo(0, 0);
   const pageSz = getPageSize(page);
   const start = getPageStart(page);
   const pageQs = questions.slice(start, start + pageSz);
@@ -236,6 +237,9 @@ async function next(){
     // Check if transitioning from Module 1 to Module 2 (SAT only)
     // Module 1: pages 1-3 (10+10+7=27 questions)
     if(examType === 'sat' && page === 3){
+      // Clear selections to avoid auto-selected answers in module 2
+      Object.keys(selections).forEach(k => delete selections[k]);
+      Object.keys(textAnswers).forEach(k => delete textAnswers[k]);
       // Show module transition screen
       showModuleBreak();
       return;
