@@ -11,9 +11,14 @@ export const handler = async (event, context) => {
     storeInitialized = true;
   }
   const method = event.httpMethod;
-  const pathParts = event.path.replace(/^\/api\//, '').split('/').filter(Boolean);
-  const resource = pathParts[0];
-  const id = pathParts[1];
+  const rawPath = event.path || event.rawUrl || '';
+  // Normalize path to extract after /.netlify/functions/ or /api/
+  let fnPath = rawPath.split('/.netlify/functions/')[1] || rawPath.split('/api/')[1] || '';
+  const parts = fnPath.split('/').filter(Boolean);
+  // When redirects map to /.netlify/functions/queries/:splat, first segment is 'queries'
+  const base = parts[0];
+  const resource = base === 'queries' ? parts[1] : base;
+  const id = base === 'queries' ? parts[2] : parts[1];
 
   try {
     if (resource === 'questions') {
@@ -38,7 +43,7 @@ export const handler = async (event, context) => {
     }
 
     if (resource === 'stats') {
-      const tests = (await getAllTests()).filter(t => t.finished_at);
+      const tests = (await getAllTests()).filter(t => t.finished_at || t.status === 'completed');
       const total = tests.length;
       const avgScore = total > 0 ? (tests.reduce((sum, t) => sum + (t.score || 0), 0) / total).toFixed(1) : 0;
       const levels = {};
@@ -48,7 +53,7 @@ export const handler = async (event, context) => {
       return { statusCode: 200, body: JSON.stringify({ total, avgScore, levels }) };
     }
 
-    if (resource === 'tests' && pathParts[1] === 'all') {
+    if (resource === 'tests' && (id === 'all')) {
       return { statusCode: 200, body: JSON.stringify(await getAllTests()) };
     }
 

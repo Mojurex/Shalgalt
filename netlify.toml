@@ -20,12 +20,12 @@ force = true
 
 [[redirects]]
 from = "/api/stats"
-to = "/.netlify/functions/queries"
+to = "/.netlify/functions/queries/stats"
 status = 200
 force = true
 
 [[redirects]]
 from = "/api/questions*"
-to = "/.netlify/functions/queries"
+to = "/.netlify/functions/queries/:splat"
 status = 200
 force = true
