@@ -10,8 +10,9 @@ export const handler = async (event, context) => {
   const remainder = fnPath.replace(/^users\/?/, '');
   const id = remainder.split('/')[0] || '';
 
-  // Always allow status check regardless of id parsing quirks
-  if (method === 'GET' && fnPath.startsWith('users/status')) {
+  // Always allow status check (handle trailing slash or different path shapes)
+  const isStatus = fnPath.startsWith('users/status') || fnPath.includes('/users/status');
+  if ((method === 'GET' || method === 'HEAD') && isStatus) {
     return { statusCode: 200, body: JSON.stringify({ backend: await getBackend() }) };
   }
 
