@@ -41,7 +41,7 @@ export const handler = async (event, context) => {
 
   try {
     if (parts[0] === 'tests') {
-      if (method === 'POST' && action === 'start') {
+      if (method === 'POST' && (!action || action === 'start')) {
         const { userId, examType } = JSON.parse(event.body || '{}');
         if (!userId) return { statusCode: 400, body: JSON.stringify({ error: 'userId required' }) };
         const test = startTest(Number(userId), examType);
