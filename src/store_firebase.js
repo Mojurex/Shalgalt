@@ -3,6 +3,16 @@ dotenv.config();
 
 let admin = null;
 let db = null;
+let fileStoreInit = false;
+
+async function ensureFileStore(){
+  const fileStore = await import('./store.js');
+  if(!fileStoreInit){
+    try{ fileStore.initStore(); } catch(e){ /* ignore */ }
+    fileStoreInit = true;
+  }
+  return fileStore;
+}
 
 async function initAdmin() {
   if (db) return db;
@@ -32,6 +42,7 @@ async function initAdmin() {
     }
     admin = firebaseAdmin;
     db = admin.firestore();
+    try { db.settings({ ignoreUndefinedProperties: true }); } catch(e){ /* ignore for older SDKs */ }
     return db;
   } catch (e) {
     console.error('Firebase init error:', e.message);
@@ -128,25 +139,27 @@ export async function saveAnswers(testId, answers){
   const batch = fdb.batch();
   
   // Delete previous answers for these questions
-  const qIds = answers.map(a => a.questionId);
-  const existingSnap = await fdb.collection('answers')
-    .where('test_id', '==', Number(testId))
-    .where('question_id', 'in', qIds)
-    .get();
-  existingSnap.docs.forEach(doc => batch.delete(doc.ref));
-  
-  // Add new answers
-  for (const a of answers) {
-    const answerRef = fdb.collection('answers').doc();
-    batch.set(answerRef, {
-      test_id: Number(testId),
-      question_id: a.questionId,
-      selected_index: a.selectedIndex,
-      text_answer: a.textAnswer
-    });
+  const qIds = (answers || []).map(a => a.questionId).filter(id => id !== undefined && id !== null);
+  if (qIds.length > 0) {
+    const existingSnap = await fdb.collection('answers')
+      .where('test_id', '==', Number(testId))
+      .where('question_id', 'in', qIds)
+      .get();
+    existingSnap.docs.forEach(doc => batch.delete(doc.ref));
+
+    // Add new answers (omit undefined fields)
+    for (const a of answers) {
+      const answerRef = fdb.collection('answers').doc();
+      const payload = {
+        test_id: Number(testId),
+        question_id: a.questionId
+      };
+      if (typeof a.selectedIndex === 'number') payload.selected_index = a.selectedIndex;
+      if (typeof a.textAnswer === 'string' && a.textAnswer.trim().length > 0) payload.text_answer = a.textAnswer.trim();
+      batch.set(answerRef, payload);
+    }
+    await batch.commit();
   }
-  
-  await batch.commit();
 }
 
 export async function computeScore(testId){
@@ -164,7 +177,7 @@ export async function computeScore(testId){
   const answers = answersSnap.docs.map(d => d.data());
   
   // Get questions based on exam type
-  const fileStore = await import('./store.js');
+  const fileStore = await ensureFileStore();
   let questions = [];
   if (t.exam_type === 'sat') {
     // Load both verbal and math
@@ -280,15 +293,49 @@ export async function getResult(testId){
 }
 
 export async function getQuestionsForTest(testId){
-  // Delegate to file store as questions are static
-  const fileStore = await import('./store.js');
-  return fileStore.getQuestionsForTest(testId);
+  const fdb = await initAdmin();
+  // Look up test in Firestore to determine exam type
+  const tSnap = await fdb.collection('tests').where('id', '==', Number(testId)).limit(1).get();
+  if (tSnap.empty) return [];
+  const t = tSnap.docs[0].data();
+
+  // Load static questions from files without exposing answers
+  const fileStore = await ensureFileStore();
+  if (t.exam_type === 'sat') {
+    const verbal = fileStore.getSATQuestions('verbal');
+    const math = fileStore.getSATQuestions('math');
+    return [...verbal, ...math].map(({ id, text, options, section, image, chart, type }) => ({ id, text, options, section, image, chart, type }));
+  }
+  const qs = fileStore.getQuestions();
+  return qs.map(({ id, text, options, image, chart }) => ({ id, text, options, image, chart }));
 }
 
 export async function getModuleScore(testId, section){
-  // Delegate to file store
-  const fileStore = await import('./store.js');
-  return fileStore.getModuleScore(testId, section);
+  const fdb = await initAdmin();
+  const tSnap = await fdb.collection('tests').where('id', '==', Number(testId)).limit(1).get();
+  if (tSnap.empty) return { correct: 0, total: 0 };
+  const t = tSnap.docs[0].data();
+  if (t.exam_type !== 'sat') return { correct: 0, total: 0 };
+
+  const fileStore = await ensureFileStore();
+  const target = section === 'math' ? fileStore.getSATQuestionsAdmin('math') : fileStore.getSATQuestionsAdmin('verbal');
+  const qMap = new Map(target.map(q => [q.id, q]));
+
+  const ansSnap = await fdb.collection('answers').where('test_id', '==', Number(testId)).get();
+  const answers = ansSnap.docs.map(d => d.data());
+  let correct = 0;
+  for (const a of answers) {
+    const q = qMap.get(a.question_id);
+    if (!q) continue;
+    if (q.type === 'text') {
+      const ua = (a.text_answer || '').toString().trim().toLowerCase();
+      const ca = (q.answer || '').toString().trim().toLowerCase();
+      if (ua && ca && ua === ca) correct++;
+    } else {
+      if (q.correct_index === a.selected_index) correct++;
+    }
+  }
+  return { correct, total: target.length };
 }
 
 // Delegate question management to file store (they're static files)

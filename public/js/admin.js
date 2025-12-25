@@ -22,22 +22,21 @@ if (!checkAuth()) {
 let refreshInterval = null;
 
 function initAdmin() {
-// Calculate SAT score (200-800 range) or show level
-function calculateSATScore(test) {
-  if (!test) return '-';
+// Calculate display value for tests
+// SAT: return 200-800 score only
+// Placement: return CEFR level
+function getDisplayValue(test) {
+  if (!test) return { label: 'Түвшин', value: '-' };
   const examType = (test.exam_type || 'placement').toLowerCase();
-  
-  // Only calculate SAT score for SAT tests
   if (examType === 'sat') {
     const scoreRaw = test.score_raw || test.score || 0;
     const totalQuestions = test.total_questions || 27;
     const percentage = (scoreRaw / totalQuestions) * 100;
     const satScore = Math.round(200 + (percentage / 100) * 600);
-    return Math.min(800, Math.max(200, satScore));
+    const value = Math.min(800, Math.max(200, satScore));
+    return { label: 'Оноо', value };
   }
-  
-  // For placement tests, show CEFR level
-  return test.level || '-';
+  return { label: 'Түвшин', value: test.level || '-' };
 }
 
 async function loadUsers(){
@@ -63,8 +62,8 @@ async function loadUsers(){
       const lastTest = userTests.sort((a,b) => b.id - a.id)[0];
       let levelBadge = '<span class="tag">Тест өгөөгүй</span>';
       if (lastTest && (lastTest.finished_at || lastTest.status === 'completed')) {
-        const displayValue = calculateSATScore(lastTest);
-        levelBadge = `<span class="tag success">${displayValue}</span>`;
+        const { value, label } = getDisplayValue(lastTest);
+        levelBadge = `<span class="tag success">${value}</span>`;
       }
       
       return `
@@ -93,10 +92,10 @@ async function loadUsers(){
     const lastTest = userTests.sort((a,b) => b.id - a.id)[0];
     let testInfo = '-';
     if(lastTest && (lastTest.finished_at || lastTest.status === 'completed')){
-      const displayValue = calculateSATScore(lastTest);
+      const { value } = getDisplayValue(lastTest);
       const score = lastTest.score_raw || lastTest.score || '-';
       const total = lastTest.total_questions || 27;
-      testInfo = `<span class="tag success">${displayValue}</span> <span class="tag info">${score}/${total}</span>`;
+      testInfo = `<span class="tag success">${value}</span> <span class="tag info">${score}/${total}</span>`;
     } else if(lastTest){
       testInfo = '<span class="tag warn">Өгч байна...</span>';
     }

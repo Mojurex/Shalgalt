@@ -4,6 +4,26 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import {
+  initStore,
+  upsertUser,
+  listUsers,
+  updateUser,
+  deleteUser,
+  getAllTests,
+  getQuestions,
+  getQuestionsAdmin,
+  upsertQuestion,
+  deleteQuestion,
+  startTest,
+  saveAnswers,
+  computeScore,
+  saveEssay,
+  finishTest,
+  getResult,
+  getQuestionsForTest,
+  getModuleScore
+} from './src/store_firebase.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,47 +31,18 @@ const __dirname = path.dirname(__filename);
 // Load environment variables
 dotenv.config();
 
-// Initialize app and start server
+const app = express();
+app.use(express.json());
+
+// Initialize Firebase store asynchronously
 (async () => {
-  // Choose store based on environment variable
-  let store;
-  if (process.env.USE_FIREBASE === 'true') {
-    try {
-      store = (await import('./src/store_firebase.js')).default;
-    } catch (e) {
-      console.warn('Firebase store failed to load, falling back to JSON store:', e.message);
-      store = (await import('./src/store.js'));
-    }
-  } else {
-    store = (await import('./src/store.js'));
+  try {
+    await initStore();
+    console.log('Firebase store initialized');
+  } catch (err) {
+    console.error('Firebase init error:', err);
   }
-
-  const {
-    initStore,
-    upsertUser,
-    listUsers,
-    updateUser,
-    deleteUser,
-    getAllTests,
-    getQuestions,
-    getQuestionsAdmin,
-    upsertQuestion,
-    deleteQuestion,
-    startTest,
-    saveAnswers,
-    computeScore,
-    saveEssay,
-    finishTest,
-    getResult,
-    getQuestionsForTest,
-    getModuleScore
-  } = store;
-
-  const app = express();
-  app.use(express.json());
-
-  // Initialize store
-  await initStore();
+})();
 
   // Email transporter (configure with real SMTP)
   const transporter = nodemailer.createTransport({
@@ -96,15 +87,18 @@ if (fs.existsSync(satDir)) {
   });
 
   api.get('/users', async (req, res) => {
-    res.json(await listUsers());
+    const users = await listUsers();
+    res.json(users);
   });
 
   api.get('/tests/all', async (req, res) => {
-    res.json(await getAllTests());
+    const tests = await getAllTests();
+    res.json(tests);
   });
 
   api.get('/stats', async (req, res) => {
-    const tests = (await getAllTests()).filter(t => t.finished_at);
+    const allTests = await getAllTests();
+    const tests = allTests.filter(t => t.finished_at);
     const total = tests.length;
     const avgScore = total > 0 ? (tests.reduce((sum, t) => sum + (t.score || 0), 0) / total).toFixed(1) : 0;
     
@@ -131,30 +125,32 @@ if (fs.existsSync(satDir)) {
   });
 
 // Questions (no correct index returned)
-api.get('/questions', (req, res) => {
-  res.json(getQuestions());
+api.get('/questions', async (req, res) => {
+  const questions = await getQuestions();
+  res.json(questions);
 });
 
-api.get('/questions/admin', (req, res) => {
-  res.json(getQuestionsAdmin());
+api.get('/questions/admin', async (req, res) => {
+  const questions = await getQuestionsAdmin();
+  res.json(questions);
 });
 // Questions for a specific test (exam-type aware)
-api.get('/tests/:testId/questions', (req, res) => {
+api.get('/tests/:testId/questions', async (req, res) => {
   const { testId } = req.params;
-  const qs = getQuestionsForTest(Number(testId));
+  const qs = await getQuestionsForTest(Number(testId));
   if(!qs || qs.length === 0) return res.status(404).json({ error: 'No questions' });
   res.json(qs);
 });
 
-api.post('/questions', (req, res) => {
+api.post('/questions', async (req, res) => {
   const { id, text, image, chart, options, correct_index } = req.body || {};
   if(!id || !text || !options || correct_index == null) return res.status(400).json({ error: 'Invalid data' });
-  const q = upsertQuestion({ id, text, image, chart, options, correct_index });
+  const q = await upsertQuestion({ id, text, image, chart, options, correct_index });
   res.json(q);
 });
 
-api.delete('/questions/:id', (req, res) => {
-  deleteQuestion(Number(req.params.id));
+api.delete('/questions/:id', async (req, res) => {
+  await deleteQuestion(Number(req.params.id));
   res.json({ ok: true });
 });
 
@@ -257,35 +253,35 @@ api.delete('/sat-math-questions/:id', (req, res) => {
 });
 
 // Start a test
-api.post('/tests/start', (req, res) => {
+api.post('/tests/start', async (req, res) => {
   const { userId, examType } = req.body || {};
   if (!userId) return res.status(400).json({ error: 'userId required' });
-  const test = startTest(Number(userId), examType);
+  const test = await startTest(Number(userId), examType);
   res.json(test);
 });
 
 // Save answers (bulk for a page)
-api.post('/tests/:testId/answers', (req, res) => {
+api.post('/tests/:testId/answers', async (req, res) => {
   const { testId } = req.params;
   const { answers } = req.body || {};
   if (!Array.isArray(answers)) return res.status(400).json({ error: 'answers[] required' });
-  saveAnswers(Number(testId), answers);
+  await saveAnswers(Number(testId), answers);
   res.json({ ok: true });
 });
 
 // Finish MCQ phase => compute score
-api.post('/tests/:testId/finish-answers', (req, res) => {
+api.post('/tests/:testId/finish-answers', async (req, res) => {
   const { testId } = req.params;
-  const score = computeScore(Number(testId));
+  const score = await computeScore(Number(testId));
   res.json({ score, level: toLevel(score) });
 });
 
 // SAT: Module score (verbal or math) without exposing answers
-api.get('/tests/:testId/module-score', (req, res) => {
+api.get('/tests/:testId/module-score', async (req, res) => {
   const { testId } = req.params;
   const section = (req.query.section || 'verbal').toString().toLowerCase();
   try{
-    const { correct, total } = getModuleScore(Number(testId), section === 'math' ? 'math' : 'verbal');
+    const { correct, total } = await getModuleScore(Number(testId), section === 'math' ? 'math' : 'verbal');
     res.json({ correct, total });
   }catch(e){
     res.status(500).json({ error: 'Module score failed' });
@@ -293,31 +289,32 @@ api.get('/tests/:testId/module-score', (req, res) => {
 });
 
 // Essays
-api.post('/tests/:testId/essay1', (req, res) => {
+api.post('/tests/:testId/essay1', async (req, res) => {
   const { testId } = req.params;
   const { text } = req.body || {};
-  const result = saveEssay(Number(testId), 'essay1', text || '');
+  const result = await saveEssay(Number(testId), 'essay1', text || '');
   res.json({ ok: true, words: result.words });
 });
 
-api.post('/tests/:testId/essay2', (req, res) => {
+api.post('/tests/:testId/essay2', async (req, res) => {
   const { testId } = req.params;
   const { text } = req.body || {};
-  const result = saveEssay(Number(testId), 'essay2', text || '');
+  const result = await saveEssay(Number(testId), 'essay2', text || '');
   res.json({ ok: true, words: result.words });
 });
 
 // Finish everything
-api.post('/tests/:testId/finish', (req, res) => {
+api.post('/tests/:testId/finish', async (req, res) => {
   const { testId } = req.params;
-  const result = finishTest(Number(testId));
+  const result = await finishTest(Number(testId));
   if (result.error) return res.status(400).json({ error: result.error });
   
   // Send email notification (async, don't wait)
-  const testData = getResult(Number(testId));
-  const userId = getAllTests().find(t => t.id === Number(testId))?.user_id;
+  const testData = await getResult(Number(testId));
+  const allTests = await getAllTests();
+  const userId = allTests.find(t => t.id === Number(testId))?.user_id;
   if(userId){
-    const users = listUsers();
+    const users = await listUsers();
     const user = users.find(u => u.id === userId);
     if(user?.email){
       const mail = {
@@ -340,9 +337,9 @@ api.post('/tests/:testId/finish', (req, res) => {
   res.json({ score: result.score, level: result.level });
 });
 
-api.get('/tests/:testId/result', (req, res) => {
+api.get('/tests/:testId/result', async (req, res) => {
   const { testId } = req.params;
-  const data = getResult(Number(testId));
+  const data = await getResult(Number(testId));
   if (!data) return res.status(404).json({ error: 'Not found' });
   res.json(data);
 });
@@ -387,11 +384,6 @@ api.post('/sat/send', async (req, res) => {
   }
 });
 
-  // Fallback to index.html
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-  });
-
   // For local development
   if (!process.env.VERCEL) {
     const PORT = process.env.PORT || 3000;
@@ -400,8 +392,5 @@ api.post('/sat/send', async (req, res) => {
     });
   }
 
-  return app;
-})().catch(err => {
-  console.error('Failed to start server:', err);
-  process.exit(1);
-});
+  // Export for Vercel
+  export default app;
