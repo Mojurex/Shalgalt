@@ -17,3 +17,15 @@ from = "/api/users*"
 to = "/.netlify/functions/users"
 status = 200
 force = true
+
+[[redirects]]
+from = "/api/stats"
+to = "/.netlify/functions/queries"
+status = 200
+force = true
+
+[[redirects]]
+from = "/api/questions*"
+to = "/.netlify/functions/queries"
+status = 200
+force = true
