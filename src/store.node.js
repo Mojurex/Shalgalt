@@ -73,20 +73,65 @@ export async function getBackend(){
   return backend;
 }
 
-// Everything else from file store
-export const getAllTests = fileStore.getAllTests;
+// Everything else - try Firebase first if available, fallback to file store
+export async function getAllTests(){
+  const fb = await ensureFb();
+  if (fb && fb.getAllTests) return fb.getAllTests();
+  return fileStore.getAllTests();
+}
+
+export async function startTest(userId, examType){
+  const fb = await ensureFb();
+  if (fb && fb.startTest) return fb.startTest(userId, examType);
+  return fileStore.startTest(userId, examType);
+}
+
+export async function saveAnswers(testId, answers){
+  const fb = await ensureFb();
+  if (fb && fb.saveAnswers) return fb.saveAnswers(testId, answers);
+  return fileStore.saveAnswers(testId, answers);
+}
+
+export async function computeScore(testId){
+  const fb = await ensureFb();
+  if (fb && fb.computeScore) return fb.computeScore(testId);
+  return fileStore.computeScore(testId);
+}
+
+export async function saveEssay(testId, which, text){
+  const fb = await ensureFb();
+  if (fb && fb.saveEssay) return fb.saveEssay(testId, which, text);
+  return fileStore.saveEssay(testId, which, text);
+}
+
+export async function finishTest(testId){
+  const fb = await ensureFb();
+  if (fb && fb.finishTest) return fb.finishTest(testId);
+  return fileStore.finishTest(testId);
+}
+
+export async function getResult(testId){
+  const fb = await ensureFb();
+  if (fb && fb.getResult) return fb.getResult(testId);
+  return fileStore.getResult(testId);
+}
+
+export async function getQuestionsForTest(testId){
+  const fb = await ensureFb();
+  if (fb && fb.getQuestionsForTest) return fb.getQuestionsForTest(testId);
+  return fileStore.getQuestionsForTest(testId);
+}
+
+export async function getModuleScore(testId, section){
+  const fb = await ensureFb();
+  if (fb && fb.getModuleScore) return fb.getModuleScore(testId, section);
+  return fileStore.getModuleScore(testId, section);
+}
+
 export const getQuestions = fileStore.getQuestions;
 export const getQuestionsAdmin = fileStore.getQuestionsAdmin;
 export const upsertQuestion = fileStore.upsertQuestion;
 export const deleteQuestion = fileStore.deleteQuestion;
-export const startTest = fileStore.startTest;
-export const saveAnswers = fileStore.saveAnswers;
-export const computeScore = fileStore.computeScore;
-export const saveEssay = fileStore.saveEssay;
-export const finishTest = fileStore.finishTest;
-export const getResult = fileStore.getResult;
-export const getQuestionsForTest = fileStore.getQuestionsForTest;
-export const getModuleScore = fileStore.getModuleScore;
 export const getSATQuestions = fileStore.getSATQuestions;
 export const getSATQuestionsAdmin = fileStore.getSATQuestionsAdmin;
 export const upsertSATQuestion = fileStore.upsertSATQuestion;
