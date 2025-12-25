@@ -290,3 +290,45 @@ export async function getModuleScore(testId, section){
   const fileStore = await import('./store.js');
   return fileStore.getModuleScore(testId, section);
 }
+
+// Delegate question management to file store
+export async function getQuestions(){
+  const fileStore = await import('./store.js');
+  return fileStore.getQuestions();
+}
+
+export async function getQuestionsAdmin(){
+  const fileStore = await import('./store.js');
+  return fileStore.getQuestionsAdmin();
+}
+
+export async function upsertQuestion(q){
+  const fileStore = await import('./store.js');
+  return fileStore.upsertQuestion(q);
+}
+
+export async function deleteQuestion(id){
+  const fileStore = await import('./store.js');
+  return fileStore.deleteQuestion(id);
+}
+
+export default {
+  initStore,
+  upsertUser,
+  listUsers,
+  updateUser,
+  deleteUser,
+  getAllTests,
+  getQuestions,
+  getQuestionsAdmin,
+  upsertQuestion,
+  deleteQuestion,
+  startTest,
+  saveAnswers,
+  computeScore,
+  saveEssay,
+  finishTest,
+  getResult,
+  getQuestionsForTest,
+  getModuleScore
+};
