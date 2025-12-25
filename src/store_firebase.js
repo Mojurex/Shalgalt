@@ -150,10 +150,66 @@ export async function saveAnswers(testId, answers){
 }
 
 export async function computeScore(testId){
-  // This requires loading questions - delegate to file store for now
-  // Or implement full question matching logic here
+  const fdb = await initAdmin();
+  
+  // Get test
+  const testSnap = await fdb.collection('tests').where('id', '==', Number(testId)).limit(1).get();
+  if (testSnap.empty) return null;
+  
+  const testRef = testSnap.docs[0].ref;
+  const t = testSnap.docs[0].data();
+  
+  // Get answers for this test
+  const answersSnap = await fdb.collection('answers').where('test_id', '==', Number(testId)).get();
+  const answers = answersSnap.docs.map(d => d.data());
+  
+  // Get questions based on exam type
   const fileStore = await import('./store.js');
-  return fileStore.computeScore(testId);
+  let questions = [];
+  if (t.exam_type === 'sat') {
+    // Load both verbal and math
+    const verbal = fileStore.getSATQuestionsAdmin('verbal');
+    const math = fileStore.getSATQuestionsAdmin('math');
+    questions = [...verbal, ...math];
+  } else {
+    questions = fileStore.getQuestionsAdmin();
+  }
+  
+  // Compute score
+  let score = 0;
+  for (const a of answers) {
+    const q = questions.find(x => x.id === a.question_id);
+    if (!q) continue;
+    
+    // Text answer (essay) - check exact match
+    if (a.text_answer !== undefined && a.text_answer !== null) {
+      const ua = (a.text_answer || '').toString().trim().toLowerCase();
+      const ca = (q.answer || '').toString().trim().toLowerCase();
+      if (ua && ca && ua === ca) score++;
+    } else {
+      // Multiple choice
+      if (q.correct_index === a.selected_index) score++;
+    }
+  }
+  
+  const total = questions.length;
+  
+  // Update test with score
+  if (t.exam_type === 'sat') {
+    const normalized = Math.round(200 + (score / Math.max(1, total)) * 600);
+    await testRef.update({
+      score: normalized,
+      score_raw: score,
+      total_questions: total
+    });
+    return normalized;
+  } else {
+    await testRef.update({
+      score: score,
+      total_questions: total
+    });
+    return score;
+  }
 }
 
 export async function saveEssay(testId, which, text){
