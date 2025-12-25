@@ -4,6 +4,26 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import {
+  initStore,
+  upsertUser,
+  listUsers,
+  updateUser,
+  deleteUser,
+  getAllTests,
+  getQuestions,
+  getQuestionsAdmin,
+  upsertQuestion,
+  deleteQuestion,
+  startTest,
+  saveAnswers,
+  computeScore,
+  saveEssay,
+  finishTest,
+  getResult,
+  getQuestionsForTest
+} from './src/store.js';
+import { getModuleScore } from './src/store.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,142 +31,116 @@ const __dirname = path.dirname(__filename);
 // Load environment variables
 dotenv.config();
 
-// Initialize app and start server
-(async () => {
-  // Use JSON store by default (Firebase too complex for now)
-  const store = (await import('./src/store.js'));
+const app = express();
+app.use(express.json());
 
-  const {
-    initStore,
-    upsertUser,
-    listUsers,
-    updateUser,
-    deleteUser,
-    getAllTests,
-    getQuestions,
-    getQuestionsAdmin,
-    upsertQuestion,
-    deleteQuestion,
-    startTest,
-    saveAnswers,
-    computeScore,
-    saveEssay,
-    finishTest,
-    getResult,
-    getQuestionsForTest,
-    getModuleScore
-  } = store;
+// Initialize JSON store and seed
+initStore();
 
-  const app = express();
-  app.use(express.json());
-
-  // Initialize store
-  await initStore();
-
-  // Email transporter (configure with real SMTP)
-  const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.SMTP_PORT) || 587,
-    secure: false,
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS
-    }
-  });
-
-  // Serve static files
-  app.use(express.static(path.join(__dirname, 'public')));
-  // Serve SAT materials statically for direct download
-  const satDir = path.join(__dirname, 'Sat');
-  if (fs.existsSync(satDir)) {
-    app.use('/sat', express.static(satDir));
+// Email transporter (configure with real SMTP)
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.SMTP_PORT) || 587,
+  secure: false,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
   }
+});
 
-  // Helpers
-  function toLevel(score) {
-    if (score >= 28) return 'C1';
-    if (score >= 24) return 'B2';
-    if (score >= 18) return 'B1';
-    if (score >= 11) return 'A2';
-    return 'A1';
+// Serve static files
+app.use(express.static(path.join(__dirname, 'public')));
+// Serve SAT materials statically for direct download
+const satDir = path.join(__dirname, 'Sat');
+if (fs.existsSync(satDir)) {
+  app.use('/sat', express.static(satDir));
+}
+
+// Helpers
+function toLevel(score) {
+  if (score >= 28) return 'C1';
+  if (score >= 24) return 'B2';
+  if (score >= 18) return 'B1';
+  if (score >= 11) return 'A2';
+  return 'A1';
+}
+
+// API routes
+const api = express.Router();
+app.use('/api', api);
+
+// Users
+api.post('/users', (req, res) => {
+  const { name, age, email, phone } = req.body || {};
+  if (!name || !age || !email || !phone) {
+    return res.status(400).json({ error: 'Incomplete user info' });
   }
+  const user = upsertUser({ name, age, email, phone });
+  return res.json(user);
+});
 
-  // API routes
-  const api = express.Router();
-  app.use('/api', api);
+api.get('/users', (req, res) => {
+  res.json(listUsers());
+});
 
-  // Users
-  api.post('/users', async (req, res) => {
-    const { name, age, email, phone } = req.body || {};
-    if (!name || !age || !email || !phone) {
-      return res.status(400).json({ error: 'Incomplete user info' });
-    }
-    const user = upsertUser({ name, age, email, phone });
-    return res.json(user);
-  });
+api.get('/tests/all', (req, res) => {
+  res.json(getAllTests());
+});
 
-  api.get('/users', async (req, res) => {
-    res.json(listUsers());
+api.get('/stats', (req, res) => {
+  const tests = getAllTests().filter(t => t.finished_at);
+  const total = tests.length;
+  const avgScore = total > 0 ? (tests.reduce((sum, t) => sum + (t.score || 0), 0) / total).toFixed(1) : 0;
+  
+  const levels = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0 };
+  tests.forEach(t => {
+    if(t.level) levels[t.level] = (levels[t.level] || 0) + 1;
   });
+  
+  res.json({ total, avgScore, levels });
+});
 
-  api.get('/tests/all', async (req, res) => {
-    res.json(getAllTests());
-  });
+api.put('/users/:id', (req, res) => {
+  const { id } = req.params;
+  const { name, age, email, phone } = req.body || {};
+  const user = updateUser(Number(id), { name, age, email, phone });
+  if (!user) return res.status(404).json({ error: 'Not found' });
+  res.json(user);
+});
 
-  api.get('/stats', async (req, res) => {
-    const tests = getAllTests().filter(t => t.finished_at);
-    const total = tests.length;
-    const avgScore = total > 0 ? (tests.reduce((sum, t) => sum + (t.score || 0), 0) / total).toFixed(1) : 0;
-    
-    const levels = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0 };
-    tests.forEach(t => {
-      if(t.level) levels[t.level] = (levels[t.level] || 0) + 1;
-    });
-    
-    res.json({ total, avgScore, levels });
-  });
+api.delete('/users/:id', (req, res) => {
+  const { id } = req.params;
+  deleteUser(Number(id));
+  res.json({ ok: true });
+});
 
-  api.put('/users/:id', async (req, res) => {
-    const { id } = req.params;
-    const { name, age, email, phone } = req.body || {};
-    const user = updateUser(Number(id), { name, age, email, phone });
-    if (!user) return res.status(404).json({ error: 'Not found' });
-    res.json(user);
-  });
+// Questions (no correct index returned)
+api.get('/questions', (req, res) => {
+  res.json(getQuestions());
+});
 
-  api.delete('/users/:id', async (req, res) => {
-    const { id } = req.params;
-    deleteUser(Number(id));
-    res.json({ ok: true });
-  });
+api.get('/questions/admin', (req, res) => {
+  res.json(getQuestionsAdmin());
+});
+// Questions for a specific test (exam-type aware)
+api.get('/tests/:testId/questions', (req, res) => {
+  const { testId } = req.params;
+  const qs = getQuestionsForTest(Number(testId));
+  if(!qs || qs.length === 0) return res.status(404).json({ error: 'No questions' });
+  res.json(qs);
+});
 
-  // Questions (no correct index returned)
-  api.get('/questions', async (req, res) => {
-    res.json(getQuestions());
-  });
+api.post('/questions', (req, res) => {
+  const { id, text, image, chart, options, correct_index } = req.body || {};
+  if(!id || !text || !options || correct_index == null) return res.status(400).json({ error: 'Invalid data' });
+  const q = upsertQuestion({ id, text, image, chart, options, correct_index });
+  res.json(q);
+});
 
-  api.get('/questions/admin', async (req, res) => {
-    res.json(getQuestionsAdmin());
-  });
-  // Questions for a specific test (exam-type aware)
-  api.get('/tests/:testId/questions', async (req, res) => {
-    const { testId } = req.params;
-    const qs = getQuestionsForTest(Number(testId));
-    if(!qs || qs.length === 0) return res.status(404).json({ error: 'No questions' });
-    res.json(qs);
-  });
-
-  api.post('/questions', async (req, res) => {
-    const { id, text, image, chart, options, correct_index } = req.body || {};
-    if(!id || !text || !options || correct_index == null) return res.status(400).json({ error: 'Invalid data' });
-    const q = upsertQuestion({ id, text, image, chart, options, correct_index });
-    res.json(q);
-  });
-
-  api.delete('/questions/:id', async (req, res) => {
-    deleteQuestion(Number(req.params.id));
-    res.json({ ok: true });
-  });
+api.delete('/questions/:id', (req, res) => {
+  deleteQuestion(Number(req.params.id));
+  res.json({ ok: true });
+});
 
 // SAT Verbal Questions (sat_questions.json)
 api.get('/sat-questions', (req, res) => {
@@ -246,96 +240,96 @@ api.delete('/sat-math-questions/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-  // Start a test
-  api.post('/tests/start', async (req, res) => {
-    const { userId, examType } = req.body || {};
-    if (!userId) return res.status(400).json({ error: 'userId required' });
-    const test = startTest(Number(userId), examType);
-    res.json(test);
-  });
+// Start a test
+api.post('/tests/start', (req, res) => {
+  const { userId, examType } = req.body || {};
+  if (!userId) return res.status(400).json({ error: 'userId required' });
+  const test = startTest(Number(userId), examType);
+  res.json(test);
+});
 
-  // Save answers (bulk for a page)
-  api.post('/tests/:testId/answers', async (req, res) => {
-    const { testId } = req.params;
-    const { answers } = req.body || {};
-    if (!Array.isArray(answers)) return res.status(400).json({ error: 'answers[] required' });
-    saveAnswers(Number(testId), answers);
-    res.json({ ok: true });
-  });
+// Save answers (bulk for a page)
+api.post('/tests/:testId/answers', (req, res) => {
+  const { testId } = req.params;
+  const { answers } = req.body || {};
+  if (!Array.isArray(answers)) return res.status(400).json({ error: 'answers[] required' });
+  saveAnswers(Number(testId), answers);
+  res.json({ ok: true });
+});
 
-  // Finish MCQ phase => compute score
-  api.post('/tests/:testId/finish-answers', async (req, res) => {
-    const { testId } = req.params;
-    const score = computeScore(Number(testId));
-    res.json({ score, level: toLevel(score) });
-  });
+// Finish MCQ phase => compute score
+api.post('/tests/:testId/finish-answers', (req, res) => {
+  const { testId } = req.params;
+  const score = computeScore(Number(testId));
+  res.json({ score, level: toLevel(score) });
+});
 
-  // SAT: Module score (verbal or math) without exposing answers
-  api.get('/tests/:testId/module-score', async (req, res) => {
-    const { testId } = req.params;
-    const section = (req.query.section || 'verbal').toString().toLowerCase();
-    try{
-      const { correct, total } = getModuleScore(Number(testId), section === 'math' ? 'math' : 'verbal');
-      res.json({ correct, total });
-    }catch(e){
-      res.status(500).json({ error: 'Module score failed' });
+// SAT: Module score (verbal or math) without exposing answers
+api.get('/tests/:testId/module-score', (req, res) => {
+  const { testId } = req.params;
+  const section = (req.query.section || 'verbal').toString().toLowerCase();
+  try{
+    const { correct, total } = getModuleScore(Number(testId), section === 'math' ? 'math' : 'verbal');
+    res.json({ correct, total });
+  }catch(e){
+    res.status(500).json({ error: 'Module score failed' });
+  }
+});
+
+// Essays
+api.post('/tests/:testId/essay1', (req, res) => {
+  const { testId } = req.params;
+  const { text } = req.body || {};
+  const result = saveEssay(Number(testId), 'essay1', text || '');
+  res.json({ ok: true, words: result.words });
+});
+
+api.post('/tests/:testId/essay2', (req, res) => {
+  const { testId } = req.params;
+  const { text } = req.body || {};
+  const result = saveEssay(Number(testId), 'essay2', text || '');
+  res.json({ ok: true, words: result.words });
+});
+
+// Finish everything
+api.post('/tests/:testId/finish', (req, res) => {
+  const { testId } = req.params;
+  const result = finishTest(Number(testId));
+  if (result.error) return res.status(400).json({ error: result.error });
+  
+  // Send email notification (async, don't wait)
+  const testData = getResult(Number(testId));
+  const userId = getAllTests().find(t => t.id === Number(testId))?.user_id;
+  if(userId){
+    const users = listUsers();
+    const user = users.find(u => u.id === userId);
+    if(user?.email){
+      const mail = {
+        from: process.env.SMTP_USER || 'noreply@test.com',
+        to: user.email,
+        subject: `English Test Result - ${result.level}`,
+        html: `
+          <h2>Your English Test Result</h2>
+          <p>Dear ${user.name},</p>
+          <p>Your test has been completed successfully!</p>
+          <p><strong>Score:</strong> ${result.score} / 30</p>
+          <p><strong>Level:</strong> ${result.level}</p>
+          <p>Thank you for taking the test.</p>
+        `
+      };
+      transporter.sendMail(mail).catch(err => console.error('Email send error:', err));
     }
-  });
+  }
+  
+  res.json({ score: result.score, level: result.level });
+});
 
-  // Essays
-  api.post('/tests/:testId/essay1', async (req, res) => {
-    const { testId } = req.params;
-    const { text } = req.body || {};
-    const result = saveEssay(Number(testId), 'essay1', text || '');
-    res.json({ ok: true, words: result.words });
-  });
-
-  api.post('/tests/:testId/essay2', async (req, res) => {
-    const { testId } = req.params;
-    const { text } = req.body || {};
-    const result = saveEssay(Number(testId), 'essay2', text || '');
-    res.json({ ok: true, words: result.words });
-  });
-
-  // Finish everything
-  api.post('/tests/:testId/finish', async (req, res) => {
-    const { testId } = req.params;
-    const result = finishTest(Number(testId));
-    if (result.error) return res.status(400).json({ error: result.error });
-    
-    // Send email notification (async, don't wait)
-    const testData = getResult(Number(testId));
-    const userId = getAllTests().find(t => t.id === Number(testId))?.user_id;
-    if(userId){
-      const users = listUsers();
-      const user = users.find(u => u.id === userId);
-      if(user?.email){
-        const mail = {
-          from: process.env.SMTP_USER || 'noreply@test.com',
-          to: user.email,
-          subject: `English Test Result - ${result.level}`,
-          html: `
-            <h2>Your English Test Result</h2>
-            <p>Dear ${user.name},</p>
-            <p>Your test has been completed successfully!</p>
-            <p><strong>Score:</strong> ${result.score} / 30</p>
-            <p><strong>Level:</strong> ${result.level}</p>
-            <p>Thank you for taking the test.</p>
-          `
-        };
-        transporter.sendMail(mail).catch(err => console.error('Email send error:', err));
-      }
-    }
-    
-    res.json({ score: result.score, level: result.level });
-  });
-
-  api.get('/tests/:testId/result', async (req, res) => {
-    const { testId } = req.params;
-    const data = getResult(Number(testId));
-    if (!data) return res.status(404).json({ error: 'Not found' });
-    res.json(data);
-  });
+api.get('/tests/:testId/result', (req, res) => {
+  const { testId } = req.params;
+  const data = getResult(Number(testId));
+  if (!data) return res.status(404).json({ error: 'Not found' });
+  res.json(data);
+});
 
 // SAT materials: list and email
 api.get('/sat/materials', (req, res) => {
@@ -383,17 +377,12 @@ app.get('*', (req, res) => {
 });
 
 // For local development
-  if (!process.env.VERCEL) {
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
-      console.log(`Server listening on http://localhost:${PORT}`);
-    });
-  }
+if (!process.env.VERCEL) {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server listening on http://localhost:${PORT}`);
+  });
+}
 
-  return app;
-})().catch(err => {
-  console.error('Failed to start server:', err);
-  process.exit(1);
-});
-
-// Export app for Vercel (Vercel will call the module when loaded, which runs the IIFE above)
+// For Vercel serverless
+export default app;
