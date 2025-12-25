@@ -6,13 +6,13 @@ await initStore();
 
 export const handler = async (event, context) => {
   const method = event.httpMethod;
-  const fnPath = (event.path || '').split('/.netlify/functions/')[1] || '';
+  const fullPath = event.path || '';
+  const fnPath = fullPath.split('/.netlify/functions/')[1] || '';
   const remainder = fnPath.replace(/^users\/?/, '');
   const id = remainder.split('/')[0] || '';
 
-  // Always allow status check (handle trailing slash or different path shapes)
-  const isStatus = fnPath.startsWith('users/status') || fnPath.includes('/users/status');
-  if ((method === 'GET' || method === 'HEAD') && isStatus) {
+  // Always allow status check (handle any path shape containing users/status)
+  if ((method === 'GET' || method === 'HEAD') && fullPath.includes('/users/status')) {
     return { statusCode: 200, body: JSON.stringify({ backend: await getBackend() }) };
   }
 
