@@ -26,13 +26,28 @@ function initAdmin() {
 function calculateSATScore(test) {
   if (!test) return '-';
   const examType = (test.exam_type || 'placement').toLowerCase();
-  if (examType !== 'sat') return test.level || '-';
   
-  const scoreRaw = test.score_raw || test.score || 0;
-  const totalQuestions = test.total_questions || 27;
-  const percentage = (scoreRaw / totalQuestions) * 100;
-  const satScore = Math.round(200 + (percentage / 100) * 600);
-  return Math.min(800, Math.max(200, satScore));
+  // For SAT tests, calculate from raw score
+  if (examType === 'sat') {
+    const scoreRaw = test.score_raw || test.score || 0;
+    const totalQuestions = test.total_questions || 27;
+    const percentage = (scoreRaw / totalQuestions) * 100;
+    const satScore = Math.round(200 + (percentage / 100) * 600);
+    return Math.min(800, Math.max(200, satScore));
+  }
+  
+  // For placement tests, convert CEFR level to SAT score
+  const level = test.level || '';
+  const levelMap = {
+    'A1': 300,
+    'A2': 400,
+    'B1': 500,
+    'B2': 600,
+    'C1': 700,
+    'C2': 800
+  };
+  
+  return levelMap[level] || test.level || '-';
 }
 
 async function loadUsers(){
