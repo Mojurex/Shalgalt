@@ -2,9 +2,15 @@ import dotenv from 'dotenv';
 import { initStore, upsertUser, listUsers, updateUser, deleteUser, getBackend } from '../../src/store.node.js';
 
 dotenv.config();
-await initStore();
+
+let storeInitialized = false;
 
 export const handler = async (event, context) => {
+  if (!storeInitialized) {
+    await initStore();
+    storeInitialized = true;
+  }
+
   const method = event.httpMethod;
   const fullPath = event.path || '';
   const rawUrl = event.rawUrl || '';

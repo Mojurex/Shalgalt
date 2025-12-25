@@ -3,7 +3,8 @@ import { initStore, startTest, saveAnswers, computeScore, saveEssay, finishTest,
 import nodemailer from 'nodemailer';
 
 dotenv.config();
-await initStore();
+
+let storeInitialized = false;
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -32,6 +33,11 @@ function toLevel(score){
 }
 
 export const handler = async (event, context) => {
+  if (!storeInitialized) {
+    await initStore();
+    storeInitialized = true;
+  }
+
   const method = event.httpMethod;
   const rawPath = event.path || event.rawUrl || '';
   console.log('[tests.js] rawPath:', rawPath, 'method:', method);
