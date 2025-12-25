@@ -1,0 +1,4 @@
+/api/tests/*  /.netlify/functions/tests  200
+/api/users/*  /.netlify/functions/users  200
+/api/tests  /.netlify/functions/tests  200
+/api/users  /.netlify/functions/users  200
