@@ -54,16 +54,21 @@ async function loadUsers(){
   document.getElementById('stat-b').textContent = (stats.levels.B1 || 0) + (stats.levels.B2 || 0);
   document.getElementById('stat-c').textContent = stats.levels.C1 || 0;
   
-  // Update contact list
+  // Update contact list - show ALL users with test status
   const contactList = document.getElementById('contact-list');
   if (contactList) {
     contactList.innerHTML = users.map(u => {
       const userTests = tests.filter(t => (t.user_id ?? t.userId) === u.id);
-      const lastTest = userTests.sort((a,b) => b.id - a.id)[0];
+      const allTests = userTests.sort((a,b) => b.id - a.id);
+      const lastTest = allTests[0];
       let levelBadge = '<span class="tag">Тест өгөөгүй</span>';
-      if (lastTest && (lastTest.finished_at || lastTest.status === 'completed')) {
-        const { value, label } = getDisplayValue(lastTest);
-        levelBadge = `<span class="tag success">${value}</span>`;
+      if (lastTest) {
+        if (lastTest.finished_at || lastTest.status === 'completed') {
+          const { value, label } = getDisplayValue(lastTest);
+          levelBadge = `<span class="tag success">${value}</span>`;
+        } else {
+          levelBadge = '<span class="tag warn">Өгч байна...</span>';
+        }
       }
       
       return `
@@ -73,7 +78,7 @@ async function loadUsers(){
             <p><strong>Нас:</strong> ${u.age}</p>
             <p><strong>Email:</strong> ${u.email}</p>
             <p><strong>Утас:</strong> ${u.phone}</p>
-            <p><strong>Түвшин:</strong> ${levelBadge}</p>
+            <p><strong>Төлөв:</strong> ${levelBadge}</p>
           </div>
           <div class="contact-actions">
             <a href="tel:${u.phone}" class="phone-call-btn">📞 Залгах</a>

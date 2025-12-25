@@ -12,10 +12,19 @@ async function init(){
   const isSAT = examType === 'sat';
   
   if(isSAT){
-    // SAT: Show 200-800 score
+    // SAT: Show 200-800 score + Module 1 & 2 breakdown
     const satScore = resultData.score || 200;
-    const rawScore = resultData.score_raw || 0;
-    const totalQs = resultData.total_questions || 54;
+    
+    // Fetch module scores
+    let verbal = { correct: 0, total: 27 };
+    let math = { correct: 0, total: 27 };
+    try {
+      const vRes = await fetch(`/api/tests/${testId}/module-score?section=verbal`);
+      if (vRes.ok) verbal = await vRes.json();
+      const mRes = await fetch(`/api/tests/${testId}/module-score?section=math`);
+      if (mRes.ok) math = await mRes.json();
+    } catch (e) { console.error('Module score fetch failed:', e); }
+    
     el.innerHTML = `
       <div class="result-hero">
         <div>
@@ -32,9 +41,14 @@ async function init(){
           <p class="hint">200 - 800 шатлалаар</p>
         </div>
         <div class="result-card">
-          <p class="label">Зөв хариулт</p>
-          <p class="value">${rawScore} / ${totalQs}</p>
-          <p class="hint">Бодит зөв хариулты ны тоо</p>
+          <p class="label">Модуль 1 (Унших)</p>
+          <p class="value">${verbal.correct} / ${verbal.total}</p>
+          <p class="hint">Verbal хэсгийн оноо</p>
+        </div>
+        <div class="result-card">
+          <p class="label">Модуль 2 (Математик)</p>
+          <p class="value">${math.correct} / ${math.total}</p>
+          <p class="hint">Math хэсгийн оноо</p>
         </div>
       </div>
     `;
