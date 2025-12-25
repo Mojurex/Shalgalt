@@ -6,20 +6,22 @@ function toast(msg){
 
 // Auth check - only run if logged in
 function checkAuth() {
-  if (sessionStorage.getItem('adminLoggedIn') !== 'true') {
-    window.location.href = '/admin.html';
-    return false;
-  }
-  return true;
+  return sessionStorage.getItem('adminLoggedIn') === 'true';
 }
 
+// Exit early if not authenticated - don't redirect, just stop execution
 if (!checkAuth()) {
-  throw new Error('Not authenticated');
+  console.log('Not authenticated, waiting for login...');
+  // Don't throw or redirect - let the inline script handle login UI
+} else {
+  // Only run admin logic if authenticated
+  initAdmin();
 }
 
 // Store reference to refresh interval for cleanup on logout
 let refreshInterval = null;
 
+function initAdmin() {
 async function loadUsers(){
   const r = await fetch('/api/users');
   const users = await r.json();
@@ -238,6 +240,8 @@ if (logoutBtn) {
   logoutBtn.addEventListener('click', () => {
     stopAutoRefresh();
     sessionStorage.removeItem('adminLoggedIn');
-    window.location.href = '/admin.html';
+    window.location.reload();
   });
 }
+
+} // End of initAdmin function
