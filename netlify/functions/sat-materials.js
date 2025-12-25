@@ -3,7 +3,8 @@ import nodemailer from 'nodemailer';
 import { initStore } from '../../src/store.node.js';
 
 dotenv.config();
-await initStore();
+
+let storeInitialized = false;
 
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || 'smtp.gmail.com',
@@ -16,6 +17,10 @@ const transporter = nodemailer.createTransport({
 });
 
 export const handler = async (event, context) => {
+  if (!storeInitialized) {
+    await initStore();
+    storeInitialized = true;
+  }
   const method = event.httpMethod;
   const action = event.path.split('/').pop();
 

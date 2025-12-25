@@ -2,9 +2,14 @@ import dotenv from 'dotenv';
 import { initStore, getAllTests, getQuestions, getQuestionsAdmin, upsertQuestion, deleteQuestion } from '../../src/store.node.js';
 
 dotenv.config();
-await initStore();
+
+let storeInitialized = false;
 
 export const handler = async (event, context) => {
+  if (!storeInitialized) {
+    await initStore();
+    storeInitialized = true;
+  }
   const method = event.httpMethod;
   const pathParts = event.path.replace(/^\/api\//, '').split('/').filter(Boolean);
   const resource = pathParts[0];

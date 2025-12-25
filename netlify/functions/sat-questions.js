@@ -2,9 +2,14 @@ import dotenv from 'dotenv';
 import { initStore, getSATQuestions, getSATQuestionsAdmin, upsertSATQuestion, deleteSATQuestion } from '../../src/store.node.js';
 
 dotenv.config();
-await initStore();
+
+let storeInitialized = false;
 
 export const handler = async (event, context) => {
+  if (!storeInitialized) {
+    await initStore();
+    storeInitialized = true;
+  }
   const method = event.httpMethod;
   const fnPath = (event.path || '').split('/.netlify/functions/')[1] || '';
   const parts = fnPath.split('/').filter(Boolean);
