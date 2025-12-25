@@ -23,20 +23,29 @@ export default function Result({ testId, onHome }) {
   if (!result) return <div style={{ textAlign: 'center', padding: '40px' }}>Үр дүн олдсонгүй</div>;
 
   const isSAT = (result.exam_type || 'placement').toLowerCase() === 'sat';
+  
+  // Calculate SAT score (200-800 range)
+  const calculateSATScore = () => {
+    if (result.score_raw && result.total_questions) {
+      const percentage = (result.score_raw / result.total_questions) * 100;
+      const satScore = Math.round(200 + (percentage / 100) * 600);
+      return Math.min(800, Math.max(200, satScore));
+    }
+    return result.score || 200;
+  };
 
   return (
     <div style={{ minHeight: '100vh', background: '#f9fafb', padding: '40px 20px' }}>
       <main className="container" style={{ maxWidth: '600px' }}>
         <div className="card" style={{ textAlign: 'center' }}>
-          <h2 style={{ fontSize: '32px', marginBottom: '12px', color: '#6366ea' }}>{result.level}</h2>
-          <p style={{ fontSize: '18px', color: '#6b7280', marginBottom: '24px' }}>Түвшний үр дүн</p>
+          <h2 style={{ fontSize: '32px', marginBottom: '12px', color: '#6366ea' }}>{isSAT ? calculateSATScore() : result.level}</h2>
+          <p style={{ fontSize: '18px', color: '#6b7280', marginBottom: '24px' }}>{isSAT ? 'SAT оноо (200-800)' : 'Түвшний үр дүн'}</p>
 
           {isSAT ? (
             <>
               <div style={{ background: 'rgba(99, 102, 241, 0.1)', padding: '20px', borderRadius: '8px', marginBottom: '24px' }}>
-                <p style={{ color: '#6b7280', marginBottom: '8px' }}>SAT оноо</p>
-                <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#6366ea' }}>{result.score} / 800</p>
-                <p style={{ fontSize: '14px', color: '#6b7280', marginTop: '8px' }}>200 - 800 шатлалаар</p>
+                <p style={{ color: '#6b7280', marginBottom: '8px' }}>Нийт SAT оноо</p>
+                <p style={{ fontSize: '28px', fontWeight: 'bold', color: '#6366ea' }}>{calculateSATScore()} / 800</p>
               </div>
               <div style={{ background: 'rgba(99, 102, 241, 0.1)', padding: '20px', borderRadius: '8px' }}>
                 <p style={{ color: '#6b7280', marginBottom: '8px' }}>Зөв хариулт</p>

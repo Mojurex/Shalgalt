@@ -4,6 +4,7 @@ export default function Home({ onStartTest, onAdminClick }) {
   const [form, setForm] = useState({ name: '', age: '', email: '', phone: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
