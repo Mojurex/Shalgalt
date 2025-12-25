@@ -33,11 +33,20 @@ function toLevel(score){
 
 export const handler = async (event, context) => {
   const method = event.httpMethod;
-  const fnPath = (event.path || '').split('/.netlify/functions/')[1] || '';
+  const rawPath = event.path || event.rawUrl || '';
+  console.log('[tests.js] rawPath:', rawPath, 'method:', method);
+  
+  // Extract path after /api/ or /.netlify/functions/
+  let fnPath = rawPath.split('/.netlify/functions/')[1] || rawPath.split('/api/')[1] || '';
+  console.log('[tests.js] fnPath:', fnPath);
+  
   const parts = fnPath.split('/').filter(Boolean);
+  console.log('[tests.js] parts:', parts);
+  
   // parts[0] === 'tests', parts[1] === testId or action
   const testId = parts[1] && /^\d+$/.test(parts[1]) ? Number(parts[1]) : undefined;
   const action = parts[1] && !testId ? parts[1] : parts[2];
+  console.log('[tests.js] testId:', testId, 'action:', action);
 
   try {
     if (parts[0] === 'tests') {
