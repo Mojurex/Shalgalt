@@ -22,6 +22,19 @@ if (!checkAuth()) {
 let refreshInterval = null;
 
 function initAdmin() {
+// Calculate SAT score (200-800 range)
+function calculateSATScore(test) {
+  if (!test) return '-';
+  const examType = (test.exam_type || 'placement').toLowerCase();
+  if (examType !== 'sat') return test.level || '-';
+  
+  const scoreRaw = test.score_raw || test.score || 0;
+  const totalQuestions = test.total_questions || 27;
+  const percentage = (scoreRaw / totalQuestions) * 100;
+  const satScore = Math.round(200 + (percentage / 100) * 600);
+  return Math.min(800, Math.max(200, satScore));
+}
+
 async function loadUsers(){
   const r = await fetch('/api/users');
   const users = await r.json();
@@ -45,8 +58,8 @@ async function loadUsers(){
       const lastTest = userTests.sort((a,b) => b.id - a.id)[0];
       let levelBadge = '<span class="tag">Тест өгөөгүй</span>';
       if (lastTest && (lastTest.finished_at || lastTest.status === 'completed')) {
-        const level = lastTest.level ?? '-';
-        levelBadge = `<span class="tag success">${level}</span>`;
+        const displayValue = calculateSATScore(lastTest);
+        levelBadge = `<span class="tag success">${displayValue}</span>`;
       }
       
       return `
@@ -75,9 +88,10 @@ async function loadUsers(){
     const lastTest = userTests.sort((a,b) => b.id - a.id)[0];
     let testInfo = '-';
     if(lastTest && (lastTest.finished_at || lastTest.status === 'completed')){
-      const level = lastTest.level ?? '-';
-      const score = lastTest.score ?? '-';
-      testInfo = `<span class="tag success">${level}</span> <span class="tag info">${score}/30</span>`;
+      const displayValue = calculateSATScore(lastTest);
+      const score = lastTest.score_raw || lastTest.score || '-';
+      const total = lastTest.total_questions || 27;
+      testInfo = `<span class="tag success">${displayValue}</span> <span class="tag info">${score}/${total}</span>`;
     } else if(lastTest){
       testInfo = '<span class="tag warn">Өгч байна...</span>';
     }
