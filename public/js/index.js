@@ -27,18 +27,26 @@ async function startTest(examType = 'placement'){
     localStorage.removeItem('testId');
     localStorage.removeItem('timerStart');
     
+    console.log('User created:', user);
+    
     // Try to start test - first try /api/tests, fallback to /api/tests/start
     let tRes = await fetch('/api/tests', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({userId: user.id, examType})});
+    console.log('/api/tests response status:', tRes.status);
+    
     if(!tRes.ok) {
+      console.log('Falling back to /api/tests/start');
       tRes = await fetch('/api/tests/start', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({userId: user.id, examType})});
+      console.log('/api/tests/start response status:', tRes.status);
     }
     
     if(!tRes.ok){
       let msg = 'Start test failed';
       try{ msg = (await tRes.text()) || msg; }catch{}
+      console.error('Test start error:', msg);
       throw new Error(msg);
     }
     const test = await tRes.json();
+    console.log('Test created:', test);
     localStorage.setItem('testId', test.id);
     localStorage.setItem('examType', test.exam_type || examType);
     window.location.href = '/test.html';
