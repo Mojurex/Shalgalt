@@ -21,7 +21,8 @@ if (!checkAuth()) {
 // Store reference to refresh interval for cleanup on logout
 let refreshInterval = null;
 
-function initAdmin() {
+// Expose to window for inline script to call after login
+window.initAdmin = function initAdmin() {
 // Calculate display value for tests
 // SAT: return 200-800 score only
 // Placement: return CEFR level
@@ -268,3 +269,9 @@ if (logoutBtn) {
 }
 
 } // End of initAdmin function
+};
+
+// If already logged in on page load, call initAdmin immediately
+if (checkAuth()) {
+  window.initAdmin();
+}
