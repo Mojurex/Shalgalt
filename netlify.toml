@@ -7,21 +7,13 @@ functions = "netlify/functions"
 publish = "public"
 
 [[redirects]]
-from = "/api/tests/*"
+from = "/api/tests*"
 to = "/.netlify/functions/tests"
 status = 200
+force = true
 
 [[redirects]]
-from = "/api/users/*"
+from = "/api/users*"
 to = "/.netlify/functions/users"
 status = 200
-
-[[redirects]]
-from = "/api/users"
-to = "/.netlify/functions/users"
-status = 200
-
-[[redirects]]
-from = "/api/tests"
-to = "/.netlify/functions/tests"
-status = 200
+force = true
