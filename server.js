@@ -4,26 +4,6 @@ import fs from 'fs';
 import { fileURLToPath } from 'url';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
-import {
-  initStore,
-  upsertUser,
-  listUsers,
-  updateUser,
-  deleteUser,
-  getAllTests,
-  getQuestions,
-  getQuestionsAdmin,
-  upsertQuestion,
-  deleteQuestion,
-  startTest,
-  saveAnswers,
-  computeScore,
-  saveEssay,
-  finishTest,
-  getResult,
-  getQuestionsForTest
-} from './src/store.js';
-import { getModuleScore } from './src/store.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,88 +11,124 @@ const __dirname = path.dirname(__filename);
 // Load environment variables
 dotenv.config();
 
-const app = express();
-app.use(express.json());
-
-// Initialize JSON store and seed
-initStore();
-
-// Email transporter (configure with real SMTP)
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || 'smtp.gmail.com',
-  port: parseInt(process.env.SMTP_PORT) || 587,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
+// Initialize app and start server
+(async () => {
+  // Choose store based on environment variable
+  let store;
+  if (process.env.USE_FIREBASE === 'true') {
+    try {
+      store = (await import('./src/store_firebase.js')).default;
+    } catch (e) {
+      console.warn('Firebase store failed to load, falling back to JSON store:', e.message);
+      store = (await import('./src/store.js'));
+    }
+  } else {
+    store = (await import('./src/store.js'));
   }
-});
 
-// Serve static files
-app.use(express.static(path.join(__dirname, 'public')));
+  const {
+    initStore,
+    upsertUser,
+    listUsers,
+    updateUser,
+    deleteUser,
+    getAllTests,
+    getQuestions,
+    getQuestionsAdmin,
+    upsertQuestion,
+    deleteQuestion,
+    startTest,
+    saveAnswers,
+    computeScore,
+    saveEssay,
+    finishTest,
+    getResult,
+    getQuestionsForTest,
+    getModuleScore
+  } = store;
+
+  const app = express();
+  app.use(express.json());
+
+  // Initialize store
+  await initStore();
+
+  // Email transporter (configure with real SMTP)
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.SMTP_PORT) || 587,
+    secure: false,
+    auth: {
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS
+    }
+  });
+
+  // Serve static files
+  app.use(express.static(path.join(__dirname, 'public')));
 // Serve SAT materials statically for direct download
 const satDir = path.join(__dirname, 'Sat');
 if (fs.existsSync(satDir)) {
   app.use('/sat', express.static(satDir));
 }
 
-// Helpers
-function toLevel(score) {
-  if (score >= 28) return 'C1';
-  if (score >= 24) return 'B2';
-  if (score >= 18) return 'B1';
-  if (score >= 11) return 'A2';
-  return 'A1';
-}
-
-// API routes
-const api = express.Router();
-app.use('/api', api);
-
-// Users
-api.post('/users', (req, res) => {
-  const { name, age, email, phone } = req.body || {};
-  if (!name || !age || !email || !phone) {
-    return res.status(400).json({ error: 'Incomplete user info' });
+  // Helpers
+  function toLevel(score) {
+    if (score >= 28) return 'C1';
+    if (score >= 24) return 'B2';
+    if (score >= 18) return 'B1';
+    if (score >= 11) return 'A2';
+    return 'A1';
   }
-  const user = upsertUser({ name, age, email, phone });
-  return res.json(user);
-});
 
-api.get('/users', (req, res) => {
-  res.json(listUsers());
-});
+  // API routes
+  const api = express.Router();
+  app.use('/api', api);
 
-api.get('/tests/all', (req, res) => {
-  res.json(getAllTests());
-});
-
-api.get('/stats', (req, res) => {
-  const tests = getAllTests().filter(t => t.finished_at);
-  const total = tests.length;
-  const avgScore = total > 0 ? (tests.reduce((sum, t) => sum + (t.score || 0), 0) / total).toFixed(1) : 0;
-  
-  const levels = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0 };
-  tests.forEach(t => {
-    if(t.level) levels[t.level] = (levels[t.level] || 0) + 1;
+  // Users
+  api.post('/users', async (req, res) => {
+    const { name, age, email, phone } = req.body || {};
+    if (!name || !age || !email || !phone) {
+      return res.status(400).json({ error: 'Incomplete user info' });
+    }
+    const user = await upsertUser({ name, age, email, phone });
+    return res.json(user);
   });
-  
-  res.json({ total, avgScore, levels });
-});
 
-api.put('/users/:id', (req, res) => {
-  const { id } = req.params;
-  const { name, age, email, phone } = req.body || {};
-  const user = updateUser(Number(id), { name, age, email, phone });
-  if (!user) return res.status(404).json({ error: 'Not found' });
-  res.json(user);
-});
+  api.get('/users', async (req, res) => {
+    res.json(await listUsers());
+  });
 
-api.delete('/users/:id', (req, res) => {
-  const { id } = req.params;
-  deleteUser(Number(id));
-  res.json({ ok: true });
-});
+  api.get('/tests/all', async (req, res) => {
+    res.json(await getAllTests());
+  });
+
+  api.get('/stats', async (req, res) => {
+    const tests = (await getAllTests()).filter(t => t.finished_at);
+    const total = tests.length;
+    const avgScore = total > 0 ? (tests.reduce((sum, t) => sum + (t.score || 0), 0) / total).toFixed(1) : 0;
+    
+    const levels = { A1: 0, A2: 0, B1: 0, B2: 0, C1: 0 };
+    tests.forEach(t => {
+      if(t.level) levels[t.level] = (levels[t.level] || 0) + 1;
+    });
+    
+    res.json({ total, avgScore, levels });
+  });
+
+  api.put('/users/:id', async (req, res) => {
+    const { id } = req.params;
+    const { name, age, email, phone } = req.body || {};
+    const user = await updateUser(Number(id), { name, age, email, phone });
+    if (!user) return res.status(404).json({ error: 'Not found' });
+    res.json(user);
+  });
+
+  api.delete('/users/:id', async (req, res) => {
+    const { id } = req.params;
+    await deleteUser(Number(id));
+    res.json({ ok: true });
+  });
 
 // Questions (no correct index returned)
 api.get('/questions', (req, res) => {
@@ -371,18 +387,21 @@ api.post('/sat/send', async (req, res) => {
   }
 });
 
-// Fallback to index.html
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// For local development
-if (!process.env.VERCEL) {
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`Server listening on http://localhost:${PORT}`);
+  // Fallback to index.html
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
   });
-}
 
-// For Vercel serverless
-export default app;
+  // For local development
+  if (!process.env.VERCEL) {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+      console.log(`Server listening on http://localhost:${PORT}`);
+    });
+  }
+
+  return app;
+})().catch(err => {
+  console.error('Failed to start server:', err);
+  process.exit(1);
+});
