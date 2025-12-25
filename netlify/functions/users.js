@@ -10,6 +10,11 @@ export const handler = async (event, context) => {
   const remainder = fnPath.replace(/^users\/?/, '');
   const id = remainder.split('/')[0] || '';
 
+  // Always allow status check regardless of id parsing quirks
+  if (method === 'GET' && fnPath.startsWith('users/status')) {
+    return { statusCode: 200, body: JSON.stringify({ backend: await getBackend() }) };
+  }
+
   try {
     if (method === 'POST' && !id) {
       const { name, age, email, phone } = JSON.parse(event.body || '{}');
@@ -18,10 +23,6 @@ export const handler = async (event, context) => {
       }
       const user = await upsertUser({ name, age, email, phone });
       return { statusCode: 200, body: JSON.stringify(user) };
-    }
-
-    if (method === 'GET' && remainder === 'status') {
-      return { statusCode: 200, body: JSON.stringify({ backend: await getBackend() }) };
     }
 
     if (method === 'GET' && !id) {
