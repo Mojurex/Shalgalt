@@ -7,14 +7,15 @@ await initStore();
 export const handler = async (event, context) => {
   const method = event.httpMethod;
   const fullPath = event.path || '';
+  const rawUrl = event.rawUrl || '';
   const fnPath = fullPath.split('/.netlify/functions/')[1] || '';
   const remainder = fnPath.replace(/^users\/?/, '');
   const id = remainder.split('/')[0] || '';
 
-  // Always allow status check early
-  const isStatusRoute = remainder.startsWith('status') || fnPath.includes('users/status') || fullPath.includes('/users/status');
+  // Always allow status check early (cover all path shapes)
+  const isStatusRoute = (fnPath.includes('status') || remainder.startsWith('status') || fullPath.includes('status') || rawUrl.includes('status'));
   if ((method === 'GET' || method === 'HEAD') && isStatusRoute) {
-    return { statusCode: 200, body: JSON.stringify({ backend: await getBackend() }) };
+    return { statusCode: 200, body: JSON.stringify({ backend: await getBackend(), path: fullPath, fnPath }) };
   }
 
   try {
