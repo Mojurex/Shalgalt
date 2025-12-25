@@ -22,12 +22,12 @@ if (!checkAuth()) {
 let refreshInterval = null;
 
 function initAdmin() {
-// Calculate SAT score (200-800 range)
+// Calculate SAT score (200-800 range) or show level
 function calculateSATScore(test) {
   if (!test) return '-';
   const examType = (test.exam_type || 'placement').toLowerCase();
   
-  // For SAT tests, calculate from raw score
+  // Only calculate SAT score for SAT tests
   if (examType === 'sat') {
     const scoreRaw = test.score_raw || test.score || 0;
     const totalQuestions = test.total_questions || 27;
@@ -36,18 +36,8 @@ function calculateSATScore(test) {
     return Math.min(800, Math.max(200, satScore));
   }
   
-  // For placement tests, convert CEFR level to SAT score
-  const level = test.level || '';
-  const levelMap = {
-    'A1': 300,
-    'A2': 400,
-    'B1': 500,
-    'B2': 600,
-    'C1': 700,
-    'C2': 800
-  };
-  
-  return levelMap[level] || test.level || '-';
+  // For placement tests, show CEFR level
+  return test.level || '-';
 }
 
 async function loadUsers(){
