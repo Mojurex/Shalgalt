@@ -265,48 +265,50 @@
 
   <div id="toast" class="toast"></div>
   <script>
-    // Login functionality
-    const loginForm = document.getElementById('login-form');
-    const loginContainer = document.getElementById('login-container');
-    const adminContent = document.getElementById('admin-content');
-    const logoutBtn = document.getElementById('logout-btn');
-    const loginError = document.getElementById('login-error');
+    // Scope everything to avoid global collisions with admin.js
+    (() => {
+      const loginForm = document.getElementById('login-form');
+      const loginContainer = document.getElementById('login-container');
+      const adminContent = document.getElementById('admin-content');
+      const logoutBtnInline = document.getElementById('logout-btn');
+      const loginError = document.getElementById('login-error');
 
-    const CORRECT_USERNAME = 'mojuh';
-    const CORRECT_PASSWORD = 'admin0527';
+      const CORRECT_USERNAME = 'mojuh';
+      const CORRECT_PASSWORD = 'admin0527';
 
-    // Check if already logged in
-    if (sessionStorage.getItem('adminLoggedIn') === 'true') {
-      loginContainer.style.display = 'none';
-      adminContent.style.display = 'block';
-    }
-
-    // Handle login form submission
-    loginForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-
-      if (username === CORRECT_USERNAME && password === CORRECT_PASSWORD) {
-        sessionStorage.setItem('adminLoggedIn', 'true');
-        loginError.textContent = '';
+      // Check if already logged in
+      if (sessionStorage.getItem('adminLoggedIn') === 'true') {
         loginContainer.style.display = 'none';
         adminContent.style.display = 'block';
-        // Reset form
-        loginForm.reset();
-      } else {
-        loginError.textContent = 'Нэвтрэх нэр эсвэл нууц үг буруу байна';
       }
-    });
 
-    // Handle logout
-    logoutBtn.addEventListener('click', () => {
-      sessionStorage.removeItem('adminLoggedIn');
-      loginContainer.style.display = 'flex';
-      adminContent.style.display = 'none';
-      loginForm.reset();
-      loginError.textContent = '';
-    });
+      // Handle login form submission
+      loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        if (username === CORRECT_USERNAME && password === CORRECT_PASSWORD) {
+          sessionStorage.setItem('adminLoggedIn', 'true');
+          loginError.textContent = '';
+          loginContainer.style.display = 'none';
+          adminContent.style.display = 'block';
+          // Reset form
+          loginForm.reset();
+        } else {
+          loginError.textContent = 'Нэвтрэх нэр эсвэл нууц үг буруу байна';
+        }
+      });
+
+      // Handle logout
+      logoutBtnInline.addEventListener('click', () => {
+        sessionStorage.removeItem('adminLoggedIn');
+        loginContainer.style.display = 'flex';
+        adminContent.style.display = 'none';
+        loginForm.reset();
+        loginError.textContent = '';
+      });
+    })();
   </script>
   <script src="/js/admin.js" defer></script>
   
