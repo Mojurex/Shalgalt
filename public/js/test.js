@@ -4,8 +4,13 @@ function toast(msg){
   setTimeout(()=>t.classList.remove('show'), 2500);
 }
 
-const testId = localStorage.getItem('testId');
-if(!testId){ window.location.href = '/'; }
+const testIdRaw = localStorage.getItem('testId');
+const testId = parseInt(testIdRaw, 10);
+if(!Number.isFinite(testId) || testId <= 0){
+  // Clear bad value and send user to start page
+  localStorage.removeItem('testId');
+  window.location.href = '/';
+}
 const examType = localStorage.getItem('examType') || 'placement';
 
 let questions = [];
