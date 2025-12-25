@@ -26,7 +26,13 @@ async function startTest(examType = 'placement'){
     // Reset any previous test/timer state to avoid auto-skip
     localStorage.removeItem('testId');
     localStorage.removeItem('timerStart');
-    const tRes = await fetch('/api/tests/start', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({userId: user.id, examType})});
+    
+    // Try to start test - first try /api/tests, fallback to /api/tests/start
+    let tRes = await fetch('/api/tests', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({userId: user.id, examType})});
+    if(!tRes.ok) {
+      tRes = await fetch('/api/tests/start', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({userId: user.id, examType})});
+    }
+    
     if(!tRes.ok){
       let msg = 'Start test failed';
       try{ msg = (await tRes.text()) || msg; }catch{}
