@@ -164,13 +164,24 @@
           required
           autocomplete="username"
         />
-        <input
-          type="password"
-          id="password"
-          placeholder="Нууц үг"
-          required
-          autocomplete="current-password"
-        />
+        <div style="position: relative;">
+          <input
+            type="password"
+            id="password"
+            placeholder="Нууц үг"
+            required
+            autocomplete="current-password"
+            style="padding-right: 40px;"
+          />
+          <button
+            type="button"
+            id="toggle-password"
+            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 18px; padding: 5px;"
+            title="Нууц үг харуулах/нуух"
+          >
+            👁️
+          </button>
+        </div>
         <button type="submit">Нэвтрэх</button>
       </form>
     </div>
@@ -309,6 +320,16 @@
         adminContent.style.display = 'none';
         loginForm.reset();
         loginError.textContent = '';
+      });
+
+      // Toggle password visibility
+      const togglePasswordBtn = document.getElementById('toggle-password');
+      const passwordInput = document.getElementById('password');
+      
+      togglePasswordBtn.addEventListener('click', () => {
+        const type = passwordInput.type === 'password' ? 'text' : 'password';
+        passwordInput.type = type;
+        togglePasswordBtn.textContent = type === 'password' ? '👁️' : '🙈';
       });
     })();
   </script>
