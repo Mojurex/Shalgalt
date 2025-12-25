@@ -38,7 +38,7 @@ export const handler = async (event, context) => {
     }
 
     if (resource === 'stats') {
-      const tests = getAllTests().filter(t => t.finished_at);
+      const tests = (await getAllTests()).filter(t => t.finished_at);
       const total = tests.length;
       const avgScore = total > 0 ? (tests.reduce((sum, t) => sum + (t.score || 0), 0) / total).toFixed(1) : 0;
       const levels = {};
@@ -49,7 +49,7 @@ export const handler = async (event, context) => {
     }
 
     if (resource === 'tests' && pathParts[1] === 'all') {
-      return { statusCode: 200, body: JSON.stringify(getAllTests()) };
+      return { statusCode: 200, body: JSON.stringify(await getAllTests()) };
     }
 
     return { statusCode: 404, body: JSON.stringify({ error: 'Not found' }) };
