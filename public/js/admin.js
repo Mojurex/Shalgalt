@@ -268,8 +268,8 @@ if (logoutBtn) {
   });
 }
 
-} // End of initAdmin function
-};
+}; // End of initAdmin function
+
 
 // If already logged in on page load, call initAdmin immediately
 if (checkAuth()) {
