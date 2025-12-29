@@ -18,8 +18,12 @@ if (!checkAuth()) {
 // Store reference to refresh interval for cleanup on logout
 let refreshInterval = null;
 
+const loadingEl = document.getElementById('admin-loading');
+const showLoading = () => loadingEl?.classList.add('show');
+const hideLoading = () => loadingEl?.classList.remove('show');
+
 // Expose to window for inline script to call after login
-window.initAdmin = function initAdmin() {
+window.initAdmin = async function initAdmin() {
 // Calculate display value for tests
 // SAT: return 200-800 score only
 // Placement: return CEFR level
@@ -127,7 +131,6 @@ async function addUser(e){
   else{ toast('Алдаа'); }
 }
 
-loadUsers();
 // Also render a full tests table if present on the page
 async function renderAllTests(){
   try{
@@ -167,7 +170,23 @@ async function renderAllTests(){
     `;
   }catch(e){ console.error(e); }
 }
-renderAllTests();
+
+async function initialLoad(){
+  showLoading();
+  try {
+    await Promise.all([loadUsers(), renderAllTests(), loadSatMaterials()]);
+  } catch (e) {
+    console.error(e);
+    toast('Ачааллахад алдаа гарлаа');
+  } finally {
+    hideLoading();
+  }
+}
+
+if (checkAuth()) {
+  initialLoad();
+  initSatSend();
+}
 document.getElementById('add-form').addEventListener('submit', addUser);
 
 // Auto-refresh every 10 seconds with interval tracking
@@ -194,13 +213,10 @@ function stopAutoRefresh() {
 
 startAutoRefresh();
 
-// SAT materials listing and sending
-async function initSatMaterials(){
+// SAT materials listing
+async function loadSatMaterials(){
   const listEl = document.getElementById('satMaterials');
-  const emailEl = document.getElementById('satEmail');
-  const sendBtn = document.getElementById('sendSatBtn');
-  const statusEl = document.getElementById('satSendStatus');
-  if(!listEl || !sendBtn) return;
+  if(!listEl) return;
   try{
     const res = await fetch('/api/sat/materials');
     const data = await res.json();
@@ -217,6 +233,14 @@ async function initSatMaterials(){
       `).join('');
     }
   }catch(e){ listEl.innerHTML = '<p class="error">Алдаа гарлаа.</p>'; }
+}
+
+// SAT send handler
+function initSatSend(){
+  const sendBtn = document.getElementById('sendSatBtn');
+  const emailEl = document.getElementById('satEmail');
+  const statusEl = document.getElementById('satSendStatus');
+  if(!sendBtn) return;
 
   sendBtn.addEventListener('click', async () => {
     statusEl.textContent = '';
@@ -237,8 +261,6 @@ async function initSatMaterials(){
     sendBtn.disabled = false;
   });
 }
-
-initSatMaterials();
 
 // Logout handling
 const logoutBtn = document.getElementById('logout-btn');

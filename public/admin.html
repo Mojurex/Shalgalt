@@ -8,19 +8,44 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="/styles.css" />
   <style>
+    /* Loading overlay */
+    #admin-loading {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(3px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      color: #fff;
+      z-index: 9999;
+    }
+    #admin-loading.show { display: flex; }
+    .loader {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(255,255,255,0.2);
+      border-top-color: #8b5cf6;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
     /* Mobile responsive table */
     @media (max-width: 768px) {
       .table-wrap {
         overflow-x: auto;
       }
-      
-      table {
-        min-width: 800px;
-      }
-      
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
+
+      table { min-width: 700px; }
+
+      .form-grid { grid-template-columns: 1fr; }
+
+      .hero { flex-direction: column; align-items: flex-start; }
+      .actions { flex-direction: column; align-items: stretch; }
+      .pill { width: 100%; text-align: left; }
     }
 
     /* Login styles */
@@ -277,6 +302,10 @@
   </div>
 
   <div id="toast" class="toast"></div>
+  <div id="admin-loading" aria-live="polite" aria-busy="true">
+    <div class="loader"></div>
+    <p style="margin:0;font-weight:600;">Ачаалж байна...</p>
+  </div>
   <script>
     // Scope everything to avoid global collisions with admin.js
     (() => {
