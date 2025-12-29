@@ -22,7 +22,21 @@ export const handler = async (event, context) => {
   const qs = event.queryStringParameters || {};
   const isStatusRoute = (fnPath.includes('status') || remainder.startsWith('status') || fullPath.includes('status') || rawUrl.includes('status') || qs.status === '1');
   if (isStatusRoute) {
-    return { statusCode: 200, body: JSON.stringify({ backend: await getBackend(), path: fullPath, fnPath, method }) };
+    // Diagnostics to help verify Netlify env configuration for Firebase
+    const useFirebaseEnv = (process.env.USE_FIREBASE === 'true');
+    const svc = process.env.FIREBASE_SERVICE_ACCOUNT || '';
+    const diag = {
+      backend: await getBackend(),
+      path: fullPath,
+      fnPath,
+      method,
+      env: {
+        USE_FIREBASE: useFirebaseEnv,
+        FIREBASE_SERVICE_ACCOUNT_set: !!svc,
+        FIREBASE_SERVICE_ACCOUNT_length: svc.length
+      }
+    };
+    return { statusCode: 200, body: JSON.stringify(diag) };
   }
 
   try {
