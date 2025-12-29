@@ -105,27 +105,12 @@ async function loadUsers(){
     const tr = document.createElement('tr');
     tr.innerHTML = `
       <td>${u.id}</td>
-      <td><input value="${u.name}" data-k="name"/></td>
-      <td><input type="number" value="${u.age}" data-k="age"/></td>
-      <td><input value="${u.email}" data-k="email"/></td>
-      <td><input value="${u.phone}" data-k="phone"/></td>
+      <td>${u.name}</td>
+      <td>${u.age}</td>
+      <td>${u.email}</td>
+      <td>${u.phone}</td>
       <td>${testInfo}</td>
-      <td>
-        <button class="secondary" data-act="save">Хадгалах</button>
-        <button class="secondary" data-act="del">Устгах</button>
-      </td>
     `;
-    tr.querySelector('[data-act="save"]').addEventListener('click', async ()=>{
-      const inputs = tr.querySelectorAll('input');
-      const payload = {}; inputs.forEach(i=>payload[i.dataset.k]= i.type==='number'? parseInt(i.value,10): i.value);
-      const res = await fetch(`/api/users/${u.id}`, {method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
-      if(res.ok){ toast('Хадгаллаа'); loadUsers(); } else { toast('Алдаа'); }
-    });
-    tr.querySelector('[data-act="del"]').addEventListener('click', async ()=>{
-      if(!confirm('Устгах уу?')) return;
-      const res = await fetch(`/api/users/${u.id}`, {method:'DELETE'});
-      if(res.ok){ tr.remove(); toast('Устгалаа'); loadUsers(); } else { toast('Алдаа'); }
-    });
     tbody.appendChild(tr);
   });
 }

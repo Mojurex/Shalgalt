@@ -293,6 +293,15 @@
       if (sessionStorage.getItem('adminLoggedIn') === 'true') {
         loginContainer.style.display = 'none';
         adminContent.style.display = 'block';
+        // Ensure admin.js initializes even if it loads after this script
+        const ensureInit = () => {
+          if (window.initAdmin) {
+            try { window.initAdmin(); } catch(e) { console.error('initAdmin error', e); }
+          } else {
+            setTimeout(ensureInit, 120);
+          }
+        };
+        ensureInit();
       }
 
       // Handle login form submission
