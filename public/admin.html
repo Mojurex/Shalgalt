@@ -197,6 +197,7 @@
         </div>
         <div style="display: flex; gap: 10px; align-items: center;">
           <div class="pill">🔄 10 сек тутамд шинэчилнэ</div>
+          <div id="backend-pill" class="pill" style="background:#eee;color:#333">⏳ Backend: шалгаж байна…</div>
           <button id="logout-btn" class="secondary" style="padding: 6px 12px; margin: 0;">Гарах</button>
         </div>
       </div>
@@ -332,6 +333,22 @@
         const icon = togglePasswordBtn.querySelector('i');
         icon.className = type === 'password' ? 'fa-solid fa-eye' : 'fa-solid fa-eye-slash';
       });
+
+      // Lightweight backend status badge for quick diagnostics
+      const backendPill = document.getElementById('backend-pill');
+      fetch('/api/users?status=1')
+        .then(r=>r.json())
+        .then(j=>{
+          const be = j && j.backend ? j.backend : 'unknown';
+          backendPill.textContent = `🗄️ Backend: ${be}`;
+          backendPill.style.background = be === 'firebase' ? '#E8F5E9' : '#FFF3E0';
+          backendPill.style.color = be === 'firebase' ? '#2E7D32' : '#E65100';
+        })
+        .catch(()=>{
+          backendPill.textContent = '⚠️ Backend: алдаа';
+          backendPill.style.background = '#FFEBEE';
+          backendPill.style.color = '#C62828';
+        });
     })();
   </script>
   <script src="/js/admin.js" defer></script>
