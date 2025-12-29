@@ -13,9 +13,6 @@ function checkAuth() {
 if (!checkAuth()) {
   console.log('Not authenticated, waiting for login...');
   // Don't throw or redirect - let the inline script handle login UI
-} else {
-  // Only run admin logic if authenticated
-  initAdmin();
 }
 
 // Store reference to refresh interval for cleanup on logout
@@ -271,7 +268,7 @@ if (logoutBtn) {
 }; // End of initAdmin function
 
 
-// If already logged in on page load, call initAdmin immediately
+// If already logged in on page load, call initAdmin immediately (after it's defined)
 if (checkAuth()) {
   window.initAdmin();
 }

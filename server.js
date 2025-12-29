@@ -252,6 +252,14 @@ api.delete('/sat-math-questions/:id', (req, res) => {
   res.json({ ok: true });
 });
 
+// Start a test - also handle POST /api/tests (frontend tries this first)
+api.post('/tests', async (req, res) => {
+  const { userId, examType } = req.body || {};
+  if (!userId) return res.status(400).json({ error: 'userId required' });
+  const test = await startTest(Number(userId), examType);
+  res.json(test);
+});
+
 // Start a test
 api.post('/tests/start', async (req, res) => {
   const { userId, examType } = req.body || {};
