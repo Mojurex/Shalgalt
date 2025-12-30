@@ -22,8 +22,9 @@ import {
   finishTest,
   getResult,
   getQuestionsForTest,
-  getModuleScore
-} from '../src/store_firebase.js';
+  getModuleScore,
+  getBackend
+} from '../src/store.node.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -87,6 +88,24 @@ api.post('/users', async (req, res) => {
 });
 
 api.get('/users', async (req, res) => {
+  // Status diagnostic for admin badge (supports ?status=1)
+  if (req.query && (req.query.status === '1' || 'status' in req.query)) {
+    try {
+      const useFirebaseEnv = (process.env.USE_FIREBASE === 'true');
+      const svc = process.env.FIREBASE_SERVICE_ACCOUNT || '';
+      const diag = {
+        backend: await getBackend(),
+        env: {
+          USE_FIREBASE: useFirebaseEnv,
+          FIREBASE_SERVICE_ACCOUNT_set: !!svc,
+          FIREBASE_SERVICE_ACCOUNT_length: svc.length
+        }
+      };
+      return res.json(diag);
+    } catch (e) {
+      return res.status(500).json({ error: 'status failed', message: e.message });
+    }
+  }
   const users = await listUsers();
   res.json(users);
 });
