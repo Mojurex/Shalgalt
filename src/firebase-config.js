@@ -5,7 +5,7 @@
 export const firebaseConfig = {
   apiKey: "AIzaSyAiFFEUcohyDcNiJJyUZtrLME3axkXe4BY",
   authDomain: "satmath-5c66b.firebaseapp.com",
-  databaseURL: "https://satmath-5c66b-default-rtdb.asia-southeast1.firebasedatabase.app",
+  databaseURL: "https://console.firebase.google.com/u/0/project/sat-math-232d4/firestore/databases/-default-/data",
   projectId: "satmath-5c66b",
   storageBucket: "satmath-5c66b.firebasestorage.app",
   messagingSenderId: "831526170910",
