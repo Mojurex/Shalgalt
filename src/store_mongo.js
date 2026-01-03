@@ -28,8 +28,22 @@ async function nextCounter(kind) {
   const res = await d.collection('counters').findOneAndUpdate(
     { _id: 'global' },
     { $inc: { [kind]: 1 } },
-    { returnDocument: 'after' }
+    { returnDocument: 'after', upsert: true }
   );
+  if (!res || !res.value) {
+    // Fallback: ensure counter exists and try again
+    await d.collection('counters').updateOne(
+      { _id: 'global' },
+      { $setOnInsert: { userId: 0, testId: 0 } },
+      { upsert: true }
+    );
+    const retry = await d.collection('counters').findOneAndUpdate(
+      { _id: 'global' },
+      { $inc: { [kind]: 1 } },
+      { returnDocument: 'after' }
+    );
+    return retry.value?.[kind] || 1;
+  }
   return res.value[kind];
 }
 
