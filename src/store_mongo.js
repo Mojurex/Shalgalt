@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 let client, db;
-const dbName = 'shalgalt';
+const dbName = 'Sat-math';
 
 async function getDb() {
   if (!client) {
