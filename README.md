@@ -42,9 +42,12 @@ npm start
 
 Энэ төслийг **Netlify Functions** архитектураар Netlify дээр үнэгүй байршуулж болно.
 
+**Мөнгөн сан**: **MongoDB Atlas** - MongoDB бүхэлдээ устгалаа. Одоо MongoDB ашигладаг.
+
 ### Шаардлагатай:
 - GitHub account + repository
 - Netlify account (free tier)
+- MongoDB Atlas account + connection string
 
 ### Хэрхэн:
 1. [Netlify Dashboard](https://app.netlify.com) дээр нэвтрэх
@@ -55,28 +58,33 @@ npm start
    - **Publish directory**: `public`
 5. Environment variables нэмэх (Site settings → Build & Deploy):
    ```
+   USE_MONGO=true
+   MONGO_URI=mongodb+srv://towshoo588_db_user:<password>@cluster0.yyiyklv.mongodb.net/?appName=Cluster0
    SMTP_HOST=smtp.gmail.com
    SMTP_PORT=587
    SMTP_USER=your-email@gmail.com
    SMTP_PASS=your-app-password
    ```
+   MongoDB нууц үг оруулаагүй болно!
+   
 6. Deploy дарна (автоматаар main branch-т push хийвэл update болно)
 
-**Дэлгэрэнгүй нь**: `DEPLOYMENT_NETLIFY.md` файлыг үзнэ
+**Дэлгэрэнгүй нь**: `MONGODB_SETUP.md` и `DEPLOYMENT_NETLIFY.md` файлыг үзнэ
 
 ---
 
-## 📧 Email тохиргоо
+## 💾 Мөнгөн сан (MongoDB)
 
-`.env` файлд Gmail мэдээллээ оруулна (localhost-д):
-```
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=tanii-email@gmail.com
-SMTP_PASS=your-app-password
+Энэ төслийг **MongoDB Atlas** ашигладаг. Firebase устгалаа.
+
+Местад (localhost) хөгжүүлэлтийн үед:
+```bash
+# .env файлд оруулна
+USE_MONGO=true
+MONGO_URI=mongodb+srv://towshoo588_db_user:<password>@cluster0.yyiyklv.mongodb.net/?appName=Cluster0
 ```
 
-Netlify дээр Environment variables-ээр тохирго хийнэ (дээр үзнэ).
+Дээлгэрэнгүй: `MONGODB_SETUP.md`
 
 ---
 

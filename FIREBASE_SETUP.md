@@ -1,14 +1,18 @@
-# Firebase Setup Guide
+# Firebase Setup Guide [DEPRECATED]
 
-## Overview
-Your Shalgalt app can now optionally use **Firebase Firestore** for storing user data (registration, profiles). All other data (questions, test results) remain in JSON files for now.
+## ⚠️ DEPRECATION NOTICE
 
-## Your Firebase Project Details
-```
-Project ID: satmath-5c66b
-API Key: AIzaSyAiFFEUcohyDcNiJJyUZtrLME3axkXe4BY
-Auth Domain: satmath-5c66b.firebaseapp.com
-```
+**Firebase has been completely removed from Shalgalt as of January 4, 2026.**
+
+The application now uses **MongoDB Atlas** as the primary backend for all persistent data. This provides better cost efficiency, flexibility, and scaling.
+
+**See `MONGODB_SETUP.md` for current setup instructions.**
+
+---
+
+## Historical Reference (No Longer In Use)
+
+The following information is kept for reference only. Firebase is no longer part of the codebase.
 
 ---
 
