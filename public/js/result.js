@@ -3,11 +3,17 @@ if(!testId){ window.location.href = '/'; }
 
 let resultData = null;
 
+const loadingEl = document.getElementById('result-loading');
+const showLoading = () => loadingEl?.classList.remove('hidden');
+const hideLoading = () => loadingEl?.classList.add('hidden');
+
 async function init(){
-  const r = await fetch(`/api/tests/${testId}/result`);
-  if(!r.ok){ document.getElementById('result').textContent = 'Үр дүн олдсонгүй'; return; }
-  resultData = await r.json();
-  const el = document.getElementById('result');
+  showLoading();
+  try {
+    const r = await fetch(`/api/tests/${testId}/result`);
+    if(!r.ok){ document.getElementById('result').textContent = 'Үр дүн олдсонгүй'; hideLoading(); return; }
+    resultData = await r.json();
+    const el = document.getElementById('result');
   const examType = (resultData.exam_type || 'placement').toLowerCase();
   const isSAT = examType === 'sat';
   
@@ -41,14 +47,14 @@ async function init(){
           <p class="hint">200 - 800 шатлалаар</p>
         </div>
         <div class="result-card">
-          <p class="label">Модуль 1 (Унших)</p>
+          <p class="label">Модуль 1 (Бодлого)</p>
           <p class="value">${verbal.correct} / ${verbal.total}</p>
-          <p class="hint">Verbal хэсгийн оноо</p>
+          <p class="hint">Module 1 хэсгийн оноо</p>
         </div>
         <div class="result-card">
           <p class="label">Модуль 2 (Математик)</p>
           <p class="value">${math.correct} / ${math.total}</p>
-          <p class="hint">Math хэсгийн оноо</p>
+          <p class="hint">Module 2 хэсгийн оноо</p>
         </div>
       </div>
     `;
@@ -83,6 +89,12 @@ async function init(){
         </div>
       </div>
     `;
+  }
+  hideLoading();
+  } catch (e) {
+    console.error('Error loading result:', e);
+    document.getElementById('result').textContent = 'Алдаа гарлаа';
+    hideLoading();
   }
 }
 
