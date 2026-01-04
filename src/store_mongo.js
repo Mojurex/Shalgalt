@@ -1,5 +1,6 @@
 import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
+import * as fileStore from './store.js';
 
 dotenv.config();
 
@@ -261,7 +262,6 @@ export async function getQuestionsForTest(testId) {
   const test = await d.collection('tests').findOne({ id: Number(testId) });
   if (!test) return [];
   
-  const fileStore = await import('./store.js');
   if (test.exam_type === 'sat') {
     const verbal = fileStore.getSATQuestions('verbal');
     const math = fileStore.getSATQuestions('math');
@@ -285,7 +285,6 @@ export async function getModuleScore(testId, section) {
   const test = await d.collection('tests').findOne({ id: Number(testId) });
   if (!test || test.exam_type !== 'sat') return { correct: 0, total: 0 };
   
-  const fileStore = await import('./store.js');
   const target = section === 'math' ? fileStore.getSATQuestionsAdmin('math') : fileStore.getSATQuestionsAdmin('verbal');
   const qMap = new Map(target.map(q => [q.id, q]));
   
