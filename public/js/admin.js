@@ -29,6 +29,9 @@ window.initAdmin = async function initAdmin() {
 // Placement: return CEFR level
 function getDisplayValue(test) {
   if (!test) return { label: 'Түвшин', value: '-' };
+  // Only show score if test is completed
+  if (test.status !== 'completed' && !test.finished_at) return { label: 'Түвшин', value: '-' };
+  
   const examType = (test.exam_type || 'placement').toLowerCase();
   if (examType === 'sat') {
     const scoreRaw = test.score_raw || test.score || 0;
