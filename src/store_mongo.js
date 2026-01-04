@@ -49,6 +49,9 @@ async function nextCounter(kind) {
 }
 
 export async function initStore() {
+  // Initialize file store (for questions)
+  fileStore.initStore();
+  // Initialize MongoDB
   await getDb();
 }
 
