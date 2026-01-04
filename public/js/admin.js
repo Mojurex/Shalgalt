@@ -32,7 +32,8 @@ function getDisplayValue(test) {
   const examType = (test.exam_type || 'placement').toLowerCase();
   if (examType === 'sat') {
     const scoreRaw = test.score_raw || test.score || 0;
-    const totalQuestions = test.total_questions || 27;
+    // SAT has 54 questions total (27 verbal + 27 math)
+    const totalQuestions = test.total_questions || 54;
     const percentage = (scoreRaw / totalQuestions) * 100;
     const satScore = Math.round(200 + (percentage / 100) * 600);
     const value = Math.min(800, Math.max(200, satScore));
