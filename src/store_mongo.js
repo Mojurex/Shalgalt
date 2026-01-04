@@ -26,26 +26,34 @@ async function getDb() {
 
 async function nextCounter(kind) {
   const d = await getDb();
-  const res = await d.collection('counters').findOneAndUpdate(
-    { _id: 'global' },
-    { $inc: { [kind]: 1 } },
-    { returnDocument: 'after', upsert: true }
-  );
-  if (!res || !res.value) {
-    // Fallback: ensure counter exists and try again
-    await d.collection('counters').updateOne(
-      { _id: 'global' },
-      { $setOnInsert: { userId: 0, testId: 0 } },
-      { upsert: true }
-    );
-    const retry = await d.collection('counters').findOneAndUpdate(
+  try {
+    const res = await d.collection('counters').findOneAndUpdate(
       { _id: 'global' },
       { $inc: { [kind]: 1 } },
-      { returnDocument: 'after' }
+      { returnDocument: 'after', upsert: true }
     );
-    return retry.value?.[kind] || 1;
+    if (res && res.value && res.value[kind] !== undefined) {
+      return res.value[kind];
+    }
+  } catch (e) {
+    console.warn('Counter update failed:', e.message);
   }
-  return res.value[kind];
+  
+  // Fallback: Ensure counter exists with default values
+  await d.collection('counters').updateOne(
+    { _id: 'global' },
+    { $setOnInsert: { userId: 0, testId: 0 } },
+    { upsert: true }
+  );
+  
+  // Now increment
+  const doc = await d.collection('counters').findOne({ _id: 'global' });
+  const newVal = (doc?.[kind] || 0) + 1;
+  await d.collection('counters').updateOne(
+    { _id: 'global' },
+    { $set: { [kind]: newVal } }
+  );
+  return newVal;
 }
 
 export async function initStore() {
